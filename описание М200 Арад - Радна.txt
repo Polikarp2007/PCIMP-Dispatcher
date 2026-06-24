@@ -1,0 +1,26 @@
+M200 Arad - Radna
+
+Developed by Poli&Co S.R.L. and released in March 2026, this route spans approximately 40 km. 
+It is located in the Crișana region of Romania and forms part of the Pan-European Corridor IV, featuring a high-speed connection towards Hungary. 
+Designed to perfection, it stands as the most technologically advanced and intelligent route ever created.
+
+The route is officially licensed, fully integrated, and configured for multiplayer (PC|MP) by the PC|MP developers in collaboration with the publisher, Poli&Co. 
+It is optimized for both dispatchers and train drivers within the PC|MP environment.
+
+The route features 6 stations: 
+- Arad 
+– Glogovăț 
+– Ghioroc 
+– Păuliș hc. 
+– Păuliș 
+– Radna. 
+
+Dispatchers enjoy full, realistic control over all stations, with the sole exception of Păuliș hc.
+
+Key features include:
+
+Complete Signaling & Switch Control: Fully synchronized between all players in real-time.
+
+Integrated Communication: Built-in voice and text chat to connect with all players.
+
+Dedicated Dispatch Zones: Custom-designed areas tailored for each dispatch post.

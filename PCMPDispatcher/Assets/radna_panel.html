@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Схема станции RADNA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #1a1f2e; background-image: url('fon for table.png'); background-size: cover; background-position: center; background-repeat: no-repeat; font-family: Arial, sans-serif; }
+        .container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        svg { width: 100%; height: auto; max-height: 100%; user-select: none; }
+        .ind { transition: x2 0.2s ease-out, y2 0.2s ease-out; }
+    </style>
+</head>
+<body>
+<div class="container">
+<svg viewBox="0 30 1340 420" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- ══════════ Сплошные пути (stroke-width 2.5) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="round" fill="none">
+        <!-- Linia 2 — вход сверху-слева, веер вниз (скос 44:40) -->
+        <polyline points="0,120 280,120 368,200 1340,200"/>
+        <!-- Linia 3 — вход сверху-слева, веер вниз -->
+        <polyline points="0,160 280,160 368,240 1340,240"/>
+        <!-- Linia 1 (подвод от R4) -->
+        <line x1="744" y1="160" x2="1340" y2="160"/>
+        <!-- Linia 4 (чёрная часть от конца NOT WORK вправо) -->
+        <line x1="230" y1="280" x2="1340" y2="280"/>
+        <!-- Linia 5 / MARFA (подвод от R1) -->
+        <line x1="964" y1="320" x2="1340" y2="320"/>
+    </g>
+
+    <!-- ══════════ Нижний путь NEUDORF (серый, NOT WORK) + пунктир от R9 ══════════ -->
+    <g stroke="#999999" stroke-width="2.5" fill="none">
+        <line x1="0" y1="360" x2="272" y2="360"/>
+        <line x1="360" y1="280" x2="272" y2="360"/> <!-- R9→NEUDORF (сплошная серая) -->
+    </g>
+    <text x="130" y="351" font-size="13" font-weight="bold" fill="#999999" font-family="Arial, sans-serif" text-anchor="middle">&lt; NEUDORF (NOT WORK)</text>
+
+    <!-- ══════════ Серая линия RM / NOT WORK ══════════ -->
+    <g stroke="#999999" stroke-width="2.5">
+        <line x1="70" y1="280" x2="230" y2="280"/>
+        <line x1="70" y1="272" x2="70"  y2="288"/> <!-- упор -->
+    </g>
+
+    <!-- ══════════ Пунктирные съезды (5,4) — скос 44:40 ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="150" y1="120" x2="194" y2="160"/> <!-- R11↔R10 -->
+        <line x1="430" y1="280" x2="474" y2="240"/> <!-- R8↔R7 -->
+        <line x1="560" y1="240" x2="604" y2="200"/> <!-- R6↔R5 -->
+        <line x1="700" y1="200" x2="744" y2="160"/> <!-- R4→Linia 1 -->
+        <line x1="700" y1="240" x2="744" y2="280"/> <!-- R3↔R2 -->
+        <line x1="920" y1="280" x2="964" y2="320"/> <!-- R1→Linia 5 -->
+    </g>
+
+    <!-- ══════════ Зелёный пунктир «directe» (поверх линий, слева до R11/R10) ══════════ -->
+    <g stroke="#00ad47" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="0" y1="120" x2="150" y2="120"/> <!-- до R11 -->
+        <line x1="0" y1="160" x2="194" y2="160"/> <!-- до R10 -->
+    </g>
+
+    <!-- ══════════ Точки-крестовины (r=4.5, #1a1a24) ══════════ -->
+    <g fill="#1a1a24">
+        <circle cx="172" cy="140" r="4.5"/> <!-- R11↔R10 -->
+        <circle cx="452" cy="260" r="4.5"/> <!-- R8↔R7 -->
+        <circle cx="582" cy="220" r="4.5"/> <!-- R6↔R5 -->
+        <circle cx="722" cy="260" r="4.5"/> <!-- R3↔R2 -->
+    </g>
+
+    <!-- ══════════ Платформы (серый бокс, «Linia N» курсив + тип жирный) ══════════ -->
+    <g>
+        <g fill="#a6a6a6">
+            <rect x="1024" y="147" width="232" height="26"/> <!-- L1 -->
+            <rect x="1024" y="187" width="232" height="26"/> <!-- L2 -->
+            <rect x="1024" y="227" width="232" height="26"/> <!-- L3 -->
+            <rect x="1024" y="267" width="232" height="26"/> <!-- L4 -->
+            <rect x="1024" y="307" width="232" height="26"/> <!-- L5 -->
+        </g>
+        <g font-family="Arial, sans-serif" fill="#1a1a1a">
+            <text x="1042" y="165" font-size="14" font-weight="bold" font-style="italic">Linia 1</text>
+            <text x="1150" y="165" font-size="14" font-weight="bold">CALATORI</text>
+            <text x="1042" y="205" font-size="14" font-weight="bold" font-style="italic">Linia 2</text>
+            <text x="1150" y="205" font-size="14" font-weight="bold">CALATORI</text>
+            <text x="1042" y="245" font-size="14" font-weight="bold" font-style="italic">Linia 3</text>
+            <text x="1150" y="245" font-size="14" font-weight="bold">CALATORI</text>
+            <text x="1042" y="285" font-size="14" font-weight="bold" font-style="italic">Linia 4</text>
+            <text x="1150" y="285" font-size="14" font-weight="bold">CALATORI</text>
+            <text x="1042" y="325" font-size="14" font-weight="bold" font-style="italic">Linia 5</text>
+            <text x="1150" y="325" font-size="14" font-weight="bold">MARFA</text>
+        </g>
+    </g>
+
+    <!-- ══════════ Направление PAULIS ══════════ -->
+    <text x="78" y="145" font-size="13" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">&lt; PAULIS</text>
+
+    <!-- ══════════ RM / NOT WORK ══════════ -->
+    <text x="70"  y="262" font-size="13" font-style="italic" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">RM</text>
+    <text x="150" y="272" font-size="13" font-weight="bold" fill="#999999" font-family="Arial, sans-serif" text-anchor="middle">NOT WORK</text>
+
+    <!-- ══════════ Слой маршрутов ══════════ -->
+    <g id="route-layer"></g>
+
+    <!-- ══════════ Слой индикаторов-остряков ══════════ -->
+    <g id="ig"></g>
+
+    <!-- ══════════ Кружки стрелок (r=6, белая заливка, красная обводка 2.5) ══════════ -->
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-R11" cx="150" cy="120" r="6" class="sw"/>
+        <circle id="n-R10" cx="194" cy="160" r="6" class="sw"/>
+        <circle id="n-R9"  cx="360" cy="280" r="6" class="sw"/>
+        <circle id="n-R8"  cx="430" cy="280" r="6" class="sw"/>
+        <circle id="n-R7"  cx="474" cy="240" r="6" class="sw"/>
+        <circle id="n-R6"  cx="560" cy="240" r="6" class="sw"/>
+        <circle id="n-R5"  cx="604" cy="200" r="6" class="sw"/>
+        <circle id="n-R4"  cx="700" cy="200" r="6" class="sw"/>
+        <circle id="n-R3"  cx="700" cy="240" r="6" class="sw"/>
+        <circle id="n-R2"  cx="744" cy="280" r="6" class="sw"/>
+        <circle id="n-R1"  cx="920" cy="280" r="6" class="sw"/>
+    </g>
+
+    <!-- ══════════ Названия стрелок (font-size 14, bold, #f00) ══════════ -->
+    <g font-size="14" font-weight="bold" fill="#f00" font-family="Arial, sans-serif" pointer-events="none" text-anchor="middle">
+        <text x="150" y="108">R11</text>
+        <text x="194" y="183">R10</text>
+        <text x="360" y="268">R9</text>
+        <text x="430" y="303">R8</text>
+        <text x="474" y="228">R7</text>
+        <text x="560" y="263">R6</text>
+        <text x="604" y="188">R5</text>
+        <text x="700" y="188">R4</text>
+        <text x="700" y="228">R3</text>
+        <text x="744" y="268">R2</text>
+        <text x="920" y="268">R1</text>
+    </g>
+
+    <!-- ══════════ Входные сигналы со стороны PAULIS (левая сторона) ══════════ -->
+    <g pointer-events="none" font-family="Arial, sans-serif">
+        <!-- YF — Linia 2 (верхняя), подпись над линией -->
+        <circle id="sig-YF" cx="22" cy="108" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="22" y="97" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YF</text>
+        <!-- Y — Linia 3 (нижняя), под линией -->
+        <circle id="sig-Y" cx="22" cy="172" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="22" y="192" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y</text>
+
+        <!-- XA — выходной для Linia 2 (верхняя), после R11, над линией -->
+        <circle id="sig-XA" cx="207" cy="108" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="207" y="97" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XA</text>
+        <!-- XAF — выходной для Linia 3 (нижняя), после R10, над линией -->
+        <circle id="sig-XAF" cx="262" cy="148" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="262" y="137" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XAF</text>
+
+        <!-- YP — входной для Linia 4, левее R7/R8, под линией L3 -->
+        <circle id="sig-YP" cx="402" cy="252" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="402" y="272" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YP</text>
+        <!-- YPF — входной для Linia 2/3, под линией L2 -->
+        <circle id="sig-YPF" cx="430" cy="212" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="430" y="232" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YPF</text>
+
+        <!-- X1 — выходной для Linia 1, у начала линии, над линией -->
+        <circle id="sig-X1" cx="765" cy="148" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="776" y="152" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">X1</text>
+        <!-- XII — выходной для Linia 2, правее XII, над линией -->
+        <circle id="sig-XII" cx="805" cy="188" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="816" y="192" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XII</text>
+        <!-- XIII — выходной для Linia 3, правее R3, над линией -->
+        <circle id="sig-XIII" cx="785" cy="228" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="796" y="232" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XIII</text>
+        <!-- X4 — выходной для Linia 4, впритык к R1, над линией -->
+        <circle id="sig-X4" cx="978" cy="268" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="978" y="257" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X4</text>
+        <!-- X5 — выходной для Linia 5 MARFA, над линией -->
+        <circle id="sig-X5" cx="998" cy="308" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="998" y="297" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X5</text>
+
+        <!-- Выходные сигналы (правая сторона — направление ARAD) -->
+        <circle id="sig-YP1"   cx="1298" cy="172" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1298" y="192" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YP1</text>
+        <circle id="sig-YPII"  cx="1298" cy="212" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1298" y="232" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YPII</text>
+        <circle id="sig-YPIII" cx="1298" cy="252" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1298" y="272" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YPIII</text>
+        <circle id="sig-YP4"   cx="1298" cy="292" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1298" y="312" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YP4</text>
+        <circle id="sig-YP5"   cx="1298" cy="332" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1298" y="352" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YP5</text>
+    </g>
+
+</svg>
+</div>
+<script>
+// Геометрия стрелок: cx,cy — центр кружка; sx,sy — прямое (0); dx,dy — отклонённое (1).
+const SW = {
+    R11:{cx:150,cy:120,sx:185,sy:120,dx:175.9,dy:143.5},
+    R10:{cx:194,cy:160,sx:159,sy:160,dx:168.1,dy:136.5},
+    R9: {cx:360,cy:280,sx:325,sy:280,dx:334.1,dy:303.5},
+    R8: {cx:430,cy:280,sx:465,sy:280,dx:455.9,dy:256.5},
+    R7: {cx:474,cy:240,sx:439,sy:240,dx:448.1,dy:263.5},
+    R6: {cx:560,cy:240,sx:595,sy:240,dx:585.9,dy:216.5},
+    R5: {cx:604,cy:200,sx:569,sy:200,dx:578.1,dy:223.5},
+    R4: {cx:700,cy:200,sx:735,sy:200,dx:725.9,dy:176.5},
+    R3: {cx:700,cy:240,sx:735,sy:240,dx:725.9,dy:263.5},
+    R2: {cx:744,cy:280,sx:709,sy:280,dx:718.1,dy:256.5},
+    R1: {cx:920,cy:280,sx:955,sy:280,dx:945.9,dy:303.5},
+};
+
+const pos = {};
+Object.keys(SW).forEach(id => pos[id] = 0);
+
+const ig = document.getElementById("ig");
+const inds = {};
+Object.keys(SW).forEach(id => {
+    const d = SW[id];
+    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    l.setAttribute("x1", d.cx); l.setAttribute("y1", d.cy);
+    l.setAttribute("x2", d.sx); l.setAttribute("y2", d.sy);
+    l.setAttribute("stroke", "#cc0000");
+    l.setAttribute("stroke-width", "4");
+    l.setAttribute("stroke-linecap", "round");
+    l.setAttribute("class", "ind");
+    ig.appendChild(l);
+    inds[id] = l;
+});
+
+function applySwitch(id) {
+    const d = SW[id];
+    inds[id].setAttribute("x2", pos[id] === 0 ? d.sx : d.dx);
+    inds[id].setAttribute("y2", pos[id] === 0 ? d.sy : d.dy);
+}
+
+window.setSwitch = function(id, state) { if (!SW[id]) return; pos[id] = state ? 1 : 0; applySwitch(id); };
+window.getSwitch = function(id) { return pos[id] || 0; };
+window.getAllSwitches = function() { return pos; };
+
+let _lastConsistClick = null;
+window.getAndClearConsistClick = function() { var r = _lastConsistClick; _lastConsistClick = null; return r || null; };
+
+// Сигналы: 0=красный, 1=жёлтый, 2=зелёный
+const SIG_COLORS = ['#ff2020', '#ffcc00', '#00cc44'];
+const sigState = {};
+window.setSignal = function(id, state) {
+    const el = document.getElementById('sig-' + id);
+    if (!el) return;
+    sigState[id] = state;
+    el.setAttribute('fill', SIG_COLORS[state] ?? SIG_COLORS[0]);
+};
+window.getSignal = function(id) { return sigState[id] || 0; };
+
+// Маршруты
+window.buildRoute = function(ids, color) {
+    const layer = document.getElementById("route-layer");
+    layer.innerHTML = "";
+    Object.keys(inds).forEach(id => inds[id].setAttribute("stroke", "#cc0000"));
+    if (!ids || ids.length < 2) return;
+    const col = color || "#00ff55";
+    const pts = _buildPts(ids);
+    _addPolyline(layer, pts, col);
+    ids.forEach(id => { if (inds[id]) inds[id].setAttribute("stroke", "#aaff00"); });
+};
+
+window.addRoute = function(ids, color) {
+    const layer = document.getElementById("route-layer");
+    if (!ids || ids.length < 2) return;
+    const pts = _buildPts(ids);
+    _addPolyline(layer, pts, color || "#00dd55");
+    ids.forEach(id => { if (inds[id]) inds[id].setAttribute("stroke", "#aaff00"); });
+};
+
+window.clearRoute = function() {
+    document.getElementById("route-layer").innerHTML = "";
+    Object.keys(inds).forEach(id => inds[id].setAttribute("stroke", "#cc0000"));
+};
+
+// Left-section switches (before the diagonal slope) vs right-section
+const _LEFT_SEC  = new Set(['R11','R10']);
+const _RIGHT_SEC = new Set(['R9','R8','R7','R6','R5','R4','R3','R2','R1']);
+
+function _buildPts(ids) {
+    const pts = [];
+    for (let i = 0; i < ids.length; i++) {
+        const d = SW[ids[i]], st = pos[ids[i]] || 0;
+        if (!d) continue;
+        pts.push([d.cx, d.cy]);
+        if (i < ids.length - 1) {
+            const nid = ids[i+1], nd = SW[nid];
+            if (!nd) continue;
+
+            // Special: diagonal slope — R11/R10 ↔ right-section switches
+            // Linia 2 slope: (280,120)↔(368,200); Linia 3 slope: (280,160)↔(368,240)
+            if (_LEFT_SEC.has(ids[i]) && _RIGHT_SEC.has(nid)) {
+                if (ids[i] === 'R11') { pts.push([280,120]); pts.push([368,200]); }
+                else                  { pts.push([280,160]); pts.push([368,240]); } // R10
+                continue;
+            }
+            if (_RIGHT_SEC.has(ids[i]) && _LEFT_SEC.has(nid)) {
+                if (nid === 'R11') { pts.push([368,200]); pts.push([280,120]); }
+                else               { pts.push([368,240]); pts.push([280,160]); } // R10
+                continue;
+            }
+
+            const ex = st===0?d.sx:d.dx, ey = st===0?d.sy:d.dy;
+            const eDY = ey - d.cy;
+            if (Math.abs(nd.cy - d.cy) > 0.1) {
+                let added = false;
+                if (Math.abs(eDY) > 0.1) {
+                    const t = (nd.cy - d.cy) / eDY;
+                    if (t > 0) {
+                        const jx = d.cx + t*(ex - d.cx);
+                        if ((jx - d.cx) * (nd.cx - d.cx) >= -1) { pts.push([jx, nd.cy]); added = true; }
+                    }
+                }
+                if (!added) {
+                    for (let bSt = 0; bSt <= 1 && !added; bSt++) {
+                        const nd2 = SW[nid];
+                        const bEx = bSt===0?nd2.sx:nd2.dx, bEy = bSt===0?nd2.sy:nd2.dy;
+                        const bDY = bEy - nd2.cy;
+                        if (Math.abs(bDY) > 0.1) {
+                            const tb = (d.cy - nd2.cy) / bDY;
+                            if (tb > 0) { pts.push([nd2.cx + tb*(bEx-nd2.cx), d.cy]); added = true; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pts;
+}
+
+function _addPolyline(layer, pts, col) {
+    const pl = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    pl.setAttribute("points", pts.map(p => p[0]+","+p[1]).join(" "));
+    pl.setAttribute("stroke", col);
+    pl.setAttribute("stroke-width", "5");
+    pl.setAttribute("fill", "none");
+    pl.setAttribute("stroke-linecap", "round");
+    pl.setAttribute("stroke-linejoin", "round");
+    pl.setAttribute("opacity", "0.85");
+    layer.appendChild(pl);
+}
+
+window.highlightSwitch = function(id, on) {
+    if (!inds[id]) return;
+    inds[id].setAttribute("stroke", on ? "#3458e1" : "#cc0000");
+    inds[id].setAttribute("stroke-width", on ? "6" : "4");
+};
+
+const locked = new Set();
+window.lockSwitch = function(id, on) {
+    if (on) locked.add(id); else locked.delete(id);
+    const el = document.getElementById("n-"+id);
+    if (!el) return;
+    el.style.cursor = on ? "not-allowed" : "pointer";
+    el.setAttribute("stroke", on ? "#888888" : "#ff0000");
+};
+
+let consistMode = false;
+window.setConsistMode = function(on) { consistMode = on; };
+
+Object.keys(SW).forEach(id => {
+    const el = document.getElementById("n-"+id);
+    if (!el) return;
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+        if (locked.has(id)) return;
+        if (consistMode) {
+            _lastConsistClick = id;
+            pos[id] ^= 1; applySwitch(id);
+            return;
+        }
+        pos[id] ^= 1; applySwitch(id);
+    });
+});
+</script>
+</body>
+</html>

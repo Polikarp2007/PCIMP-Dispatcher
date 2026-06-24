@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Arad — полная схема (SCH I + II)</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #fff; font-family: Arial, sans-serif; }
+    .wrap { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    .viewport { flex: 1 1 auto; position: relative; overflow: hidden; background: #fff; }
+    .strip { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: stretch; will-change: transform; }
+    .strip svg.board { height: 100%; width: auto; aspect-ratio: 3012 / 847; display: block; flex: 0 0 auto; user-select: none; }
+    .label { fill: #d40000; font-style: italic; font-weight: 900; font-size: 22px; font-family: Arial, sans-serif; }
+    .bar { flex: 0 0 auto; display: flex; align-items: center; gap: 16px; padding: 12px 22px; background: #f4f4f5; border-top: 1px solid #e2e2e4; }
+    .bar .lbl { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #c0152f; white-space: nowrap; user-select: none; }
+    .slider { -webkit-appearance: none; appearance: none; flex: 1 1 auto; height: 6px; border-radius: 3px; background: #c8c8cc; outline: none; cursor: pointer; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #c0152f; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: grab; }
+    .slider::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #c0152f; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: grab; }
+    .hint { font-size: 11px; color: #999; white-space: nowrap; user-select: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="viewport" id="viewport">
+        <div class="strip" id="strip">
+<svg class="board" viewBox="0 0 3012 847" xmlns="http://www.w3.org/2000/svg">
+
+<!-- SCH I -->
+<svg x="0" y="0" width="1506" height="847" viewBox="0 0 1506 847">
+
+
+    <!-- ══════════ Сплошные пути (stroke-width 2.5) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" fill="none">
+        <!-- L7 -->
+        <line x1="0" y1="313" x2="457"  y2="313"/>
+        <line x1="1334" y1="313" x2="1506" y2="313"/>
+        <!-- L6 -->
+        <line x1="0" y1="353" x2="514"  y2="353"/>
+        <line x1="1053" y1="353" x2="1263" y2="353"/>
+        <!-- L5 / L4 / L3 / L2 (сквозные) -->
+        <line x1="0" y1="393" x2="1506" y2="393"/>
+        <line x1="0" y1="433" x2="1506" y2="433"/>
+        <line x1="0" y1="473" x2="1506" y2="473"/>
+        <line x1="0" y1="513" x2="1506" y2="513"/>
+        <!-- L1 -->
+        <line x1="0" y1="553" x2="698"  y2="553"/>
+    </g>
+
+    <!-- ══════════ Пунктирные съезды (stroke-dasharray 5,4) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="457"  y1="313" x2="514"  y2="353"/> <!-- L7→A31 -->
+        <line x1="514"  y1="353" x2="578"  y2="393"/> <!-- A31→A30 -->
+        <line x1="764"  y1="393" x2="826"  y2="433"/> <!-- A28→A27 -->
+        <line x1="748"  y1="433" x2="682"  y2="473"/> <!-- A26→A25 -->
+        <line x1="764"  y1="513" x2="698"  y2="553"/> <!-- A24→L1 -->
+        <line x1="882"  y1="513" x2="943"  y2="473"/> <!-- A23→A22 -->
+        <line x1="983"  y1="433" x2="1046" y2="473"/> <!-- A20→A21 -->
+        <line x1="983"  y1="393" x2="1046" y2="353"/> <!-- A19→A18 -->
+        <line x1="1263" y1="353" x2="1327" y2="313"/> <!-- L6→A14 -->
+        <line x1="1090" y1="433" x2="1155" y2="393"/> <!-- A17→A16 -->
+        <line x1="1113" y1="473" x2="1175" y2="513"/> <!-- A15→A13 -->
+    </g>
+
+    <!-- ══════════ Серые грузовые линии MARFA + NOT WORK (#999) ══════════ -->
+    <g stroke="#999999" stroke-width="2.5" stroke-linejoin="miter" fill="none">
+        <!-- LINII de MARFA ARAD: 3 параллельные пути над Linia 7, единый угол скоса 64:40 (как A30→A31), шаг 40px -->
+        <!-- A29: скос сразу под углом 64:40 → нижний путь 273 (поверх Linia 7) -->
+        <polyline points="694,393 502,273 0,273"/>
+        <!-- A18: прямо до A28, над A28 подъём 64:40 → средний путь 233 (поверх первого) -->
+        <polyline points="1046,353 764,353 572,233 0,233"/>
+        <!-- A14: прямо до A28, над A28 подъём 64:40 → верхний путь 193 (поверх второго) -->
+        <polyline points="1327,313 764,313 572,193 0,193"/>
+        <!-- NOT WORK горизонталь -->
+        <line x1="1322" y1="553" x2="1466" y2="553"/>
+        <line x1="1466" y1="545" x2="1466" y2="561"/> <!-- упор -->
+    </g>
+    <!-- NOT WORK пунктирный съезд от A12 (от пересечения на L2) -->
+    <g stroke="#999999" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="1262" y1="513" x2="1322" y2="553"/>
+    </g>
+
+    <!-- ══════════ Платформы (Linia 1–7 CALATORI) ══════════ -->
+    <g>
+        <g fill="#a6a6a6">
+            <rect x="79" y="291" width="278" height="20"/>
+            <rect x="79" y="331" width="278" height="20"/>
+            <rect x="79" y="371" width="278" height="20"/>
+            <rect x="79" y="411" width="278" height="20"/>
+            <rect x="79" y="451" width="278" height="20"/>
+            <rect x="79" y="491" width="278" height="20"/>
+            <rect x="79" y="531" width="278" height="20"/>
+        </g>
+        <g font-family="Arial, sans-serif" fill="#1a1a1a">
+            <text x="96"  y="306" font-size="15" font-weight="bold" font-style="italic">Linia 7</text>
+            <text x="210" y="306" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="346" font-size="15" font-weight="bold" font-style="italic">Linia 6</text>
+            <text x="210" y="346" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="386" font-size="15" font-weight="bold" font-style="italic">Linia 5</text>
+            <text x="210" y="386" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="426" font-size="15" font-weight="bold" font-style="italic">Linia 4</text>
+            <text x="210" y="426" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="466" font-size="15" font-weight="bold" font-style="italic">Linia 3</text>
+            <text x="210" y="466" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="506" font-size="15" font-weight="bold" font-style="italic">Linia 2</text>
+            <text x="210" y="506" font-size="15" font-weight="bold">CALATORI</text>
+            <text x="96"  y="546" font-size="15" font-weight="bold" font-style="italic">Linia 1</text>
+            <text x="210" y="546" font-size="15" font-weight="bold">CALATORI</text>
+        </g>
+    </g>
+
+    <!-- ══════════ Выходные сигналы XP1–XP7 (Linia 1–7) — стандарт Glogovat ══════════ -->
+    <g pointer-events="none" font-family="Arial, sans-serif">
+        <circle id="sig-XP7" cx="40" cy="302" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="291" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XP7</text>
+        <circle id="sig-Y7" cx="385" cy="324" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="385" y="345" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y7</text>
+        <circle id="sig-Y6" cx="385" cy="364" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="385" y="385" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y6</text>
+        <circle id="sig-Y5" cx="439" cy="404" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="439" y="425" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y5</text>
+        <circle id="sig-YIV" cx="553" cy="444" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="553" y="465" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YIV</text>
+        <circle id="sig-YIII" cx="496" cy="484" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="496" y="505" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YIII</text>
+        <circle id="sig-Y2" cx="662" cy="524" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="662" y="545" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y2</text>
+        <circle id="sig-Y1" cx="662" cy="564" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="662" y="585" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y1</text>
+        <circle id="sig-XP6" cx="40" cy="342" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="331" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XP6</text>
+        <circle id="sig-XP5" cx="40" cy="382" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="371" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XP5</text>
+        <circle id="sig-XPIV" cx="40" cy="422" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="411" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XPIV</text>
+        <circle id="sig-XPIII" cx="40" cy="462" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="451" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XPIII</text>
+        <circle id="sig-XP2" cx="40" cy="502" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="491" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XP2</text>
+        <circle id="sig-XP1" cx="40" cy="542" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="40" y="531" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XP1</text>
+    </g>
+
+    <!-- ══════════ Слой индикаторов-остряков (скрипт) ══════════ -->
+    <!-- ══════════ Точки спаренных (зависимых) стрелок — середина пунктира, стандарт Glogovat ══════════ -->
+    <g fill="#1a1a24">
+        <circle cx="795"    cy="413" r="4.5"/> <!-- A28↔A27 -->
+        <circle cx="715"    cy="453" r="4.5"/> <!-- A26↔A25 -->
+        <circle cx="912.5"  cy="493" r="4.5"/> <!-- A23↔A22 -->
+        <circle cx="1014.5" cy="453" r="4.5"/> <!-- A20↔A21 -->
+        <circle cx="1014.5" cy="373" r="4.5"/> <!-- A19↔A18 -->
+        <circle cx="1122.5" cy="413" r="4.5"/> <!-- A17↔A16 -->
+        <circle cx="1144"   cy="493" r="4.5"/> <!-- A15↔A13 -->
+    </g>
+
+    <g id="ig-i"></g>
+
+    <!-- ══════════ Кружки стрелок (r=6, белая заливка, красная обводка 2.5) ══════════ -->
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-A31" cx="514"  cy="353" r="6" class="sw"/>
+        <circle id="n-A30" cx="578"  cy="393" r="6" class="sw"/>
+        <circle id="n-A29" cx="694"  cy="393" r="6" class="sw"/>
+        <circle id="n-A28" cx="764"  cy="393" r="6" class="sw"/>
+        <circle id="n-A27" cx="826"  cy="433" r="6" class="sw"/>
+        <circle id="n-A26" cx="748"  cy="433" r="6" class="sw"/>
+        <circle id="n-A25" cx="682"  cy="473" r="6" class="sw"/>
+        <circle id="n-A24" cx="764"  cy="513" r="6" class="sw"/>
+        <circle id="n-A23" cx="882"  cy="513" r="6" class="sw"/>
+        <circle id="n-A22" cx="943"  cy="473" r="6" class="sw"/>
+        <circle id="n-A21" cx="1046" cy="473" r="6" class="sw"/>
+        <circle id="n-A20" cx="983"  cy="433" r="6" class="sw"/>
+        <circle id="n-A19" cx="983"  cy="393" r="6" class="sw"/>
+        <circle id="n-A18" cx="1046" cy="353" r="6" class="sw"/>
+        <circle id="n-A17" cx="1090" cy="433" r="6" class="sw"/>
+        <circle id="n-A16" cx="1155" cy="393" r="6" class="sw"/>
+        <circle id="n-A15" cx="1113" cy="473" r="6" class="sw"/>
+        <circle id="n-A14" cx="1327" cy="313" r="6" class="sw"/>
+        <circle id="n-A13" cx="1175" cy="513" r="6" class="sw"/>
+        <circle id="n-A12" cx="1262" cy="513" r="6" class="sw"/>
+    </g>
+
+    <!-- ══════════ Названия стрелок (font-size 14, bold, #e00000) ══════════ -->
+    <g font-size="14" font-weight="bold" fill="#e00000" font-family="Arial, sans-serif" pointer-events="none" text-anchor="middle">
+        <text x="514"  y="341">A31</text>
+        <text x="578"  y="381">A30</text>
+        <text x="694"  y="381">A29</text>
+        <text x="764"  y="381">A28</text>
+        <text x="826"  y="421">A27</text>
+        <text x="748"  y="421">A26</text>
+        <text x="682"  y="495">A25</text>
+        <text x="764"  y="501">A24</text>
+        <text x="882"  y="535">A23</text>
+        <text x="943"  y="461">A22</text>
+        <text x="1046" y="495">A21</text>
+        <text x="983"  y="421">A20</text>
+        <text x="983"  y="381">A19</text>
+        <text x="1046" y="341">A18</text>
+        <text x="1090" y="421">A17</text>
+        <text x="1155" y="381">A16</text>
+        <text x="1113" y="461">A15</text>
+        <text x="1327" y="301">A14</text>
+        <text x="1175" y="535">A13</text>
+        <text x="1262" y="501">A12</text>
+    </g>
+
+    <!-- ══════════ Подписи MARFA / NOT WORK / RM ══════════ -->
+    <g font-family="Arial, sans-serif" fill="#888888" font-weight="bold" text-anchor="middle">
+        <text x="218" y="187" font-size="13">LINII de MARFA ARAD</text>
+        <text x="218" y="227" font-size="13">LINII de MARFA ARAD</text>
+        <text x="218" y="267" font-size="13">LINII de MARFA ARAD</text>
+    </g>
+    <text x="1338" y="544" font-size="13" font-family="Arial, sans-serif" fill="#888888" font-weight="bold">NOT WORK</text>
+    <text x="1466" y="577" font-size="15" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">RM</text>
+
+    <!-- ══════════ Надпись схемы ══════════ -->
+    <text class="label" x="1490" y="72" text-anchor="end">SCH <tspan font-style="italic">Ⅰ</tspan></text>
+
+
+</svg>
+
+<!-- SCH II (сдвиг вверх 10px) -->
+<svg x="1506" y="-10" width="1506" height="847" viewBox="0 0 1506 847">
+
+
+    <!-- ══════════ Сплошные пути (stroke-width 2.5) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" fill="none">
+        <!-- L412 (верхний): слева → A7 → поворот к RM -->
+        <line x1="0" y1="323" x2="874" y2="323"/>
+        <!-- L463 (соединитель): от подъёма A11 через A6,A4 → поворот к DEPOUL#1 -->
+        <line x1="497" y1="363" x2="874" y2="363"/>
+        <!-- L515: слева → A1 -->
+        <line x1="0" y1="403" x2="1021" y2="403"/>
+        <!-- L566 → GLOGOVAT -->
+        <line x1="0" y1="443" x2="1506" y2="443"/>
+        <!-- L617 → GLOGOVAT -->
+        <line x1="0" y1="483" x2="1506" y2="483"/>
+        <!-- L668 (слева) → ARADU NOU -->
+        <line x1="0" y1="523" x2="151" y2="523"/>
+    </g>
+
+    <!-- ══════════ Зелёный пунктир входа со стороны GLOGOVAT (поверх чёрных линий) ══════════ -->
+    <g stroke="#00ad47" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="687" y1="443" x2="1506" y2="443"/> <!-- до A8 -->
+        <line x1="438" y1="483" x2="1506" y2="483"/> <!-- до A10 -->
+    </g>
+
+    <!-- ══════════ Веер отправления: короткий уклон + горизонталь (шаг 40px, концы ровные) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" stroke-linejoin="miter" fill="none">
+        <polyline points="874,323 1114,203 1466,203"/>  <!-- RM -->
+        <polyline points="874,363 1114,243 1450,243"/>  <!-- DEPOUL ARAD #1 -->
+        <polyline points="948,403 1188,283 1450,283"/>  <!-- DEPOUL ARAD #2 (A2) -->
+        <polyline points="1021,403 1181,323 1450,323"/> <!-- DEPOUL ARAD #3 (A1) -->
+    </g>
+    <!-- ARADU NOU (резкий уклон вниз + горизонталь) -->
+    <polyline points="151,523 217,563 540,563" stroke="#000" stroke-width="2.5" stroke-linejoin="miter" fill="none"/>
+
+    <!-- Упоры на концах (вертикальные, 16px) -->
+    <g stroke="#000" stroke-width="2.5">
+        <line x1="1450" y1="235" x2="1450" y2="251"/>
+        <line x1="1450" y1="275" x2="1450" y2="291"/>
+        <line x1="1450" y1="315" x2="1450" y2="331"/>
+    </g>
+
+    <!-- Стрелки RM и ARADU NOU -->
+    <g stroke="#000" stroke-width="2.5" fill="none">
+        <!-- Стрелка RM (горизонтальная, вправо) -->
+        <line x1="1452" y1="196" x2="1466" y2="203"/>
+        <line x1="1452" y1="210" x2="1466" y2="203"/>
+        <!-- Стрелка ARADU NOU (горизонтальная, вправо) -->
+        <line x1="526" y1="556" x2="540" y2="563"/>
+        <line x1="526" y1="570" x2="540" y2="563"/>
+    </g>
+
+    <!-- ══════════ NOT WORK (серый): уклон + горизонталь ══════════ -->
+    <g stroke="#999999" stroke-width="2.5" stroke-linejoin="miter" fill="none">
+        <polyline points="1021,403 1104,403 1184,363 1450,363"/>
+        <line x1="1450" y1="355" x2="1450" y2="371"/>  <!-- упор -->
+    </g>
+
+    <!-- ══════════ Пунктирные съезды (stroke-dasharray 5,4) ══════════ -->
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="687" y1="323" x2="753" y2="363"/> <!-- A7→A6 -->
+        <line x1="835" y1="363" x2="901" y2="403"/> <!-- A4→A3 -->
+        <line x1="438" y1="403" x2="497" y2="363"/> <!-- A11→L463 -->
+        <line x1="687" y1="443" x2="753" y2="403"/> <!-- A8→A5 -->
+        <line x1="503" y1="443" x2="438" y2="483"/> <!-- A9→A10 -->
+    </g>
+
+    <!-- ══════════ Слой индикаторов-остряков (скрипт) ══════════ -->
+    <!-- ══════════ Точки спаренных (зависимых) стрелок — середина пунктира ══════════ -->
+    <g fill="#1a1a24">
+        <circle cx="720"   cy="343" r="4.5"/> <!-- A7↔A6 -->
+        <circle cx="868"   cy="383" r="4.5"/> <!-- A4↔A3 -->
+        <circle cx="720"   cy="423" r="4.5"/> <!-- A8↔A5 -->
+        <circle cx="470.5" cy="463" r="4.5"/> <!-- A9↔A10 -->
+    </g>
+
+    <g id="ig-ii"></g>
+
+    <!-- ══════════ Кружки стрелок (r=6, белая заливка, красная обводка 2.5) ══════════ -->
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-A7"  cx="687"  cy="323" r="6" class="sw"/>
+        <circle id="n-A6"  cx="753"  cy="363" r="6" class="sw"/>
+        <circle id="n-A4"  cx="835"  cy="363" r="6" class="sw"/>
+        <circle id="n-A11" cx="438"  cy="403" r="6" class="sw"/>
+        <circle id="n-A5"  cx="753"  cy="403" r="6" class="sw"/>
+        <circle id="n-A3"  cx="901"  cy="403" r="6" class="sw"/>
+        <circle id="n-A2"  cx="948"  cy="403" r="6" class="sw"/>
+        <circle id="n-A1"  cx="1021" cy="403" r="6" class="sw"/>
+        <circle id="n-A9"  cx="503"  cy="443" r="6" class="sw"/>
+        <circle id="n-A8"  cx="687"  cy="443" r="6" class="sw"/>
+        <circle id="n-A10" cx="438"  cy="483" r="6" class="sw"/>
+    </g>
+
+    <!-- ══════════ Названия стрелок (font-size 14, bold, #e00000) ══════════ -->
+    <g font-size="14" font-weight="bold" fill="#e00000" font-family="Arial, sans-serif" pointer-events="none" text-anchor="middle">
+        <text x="687"  y="311">A7</text>
+        <text x="753"  y="351">A6</text>
+        <text x="835"  y="351">A4</text>
+        <text x="438"  y="391">A11</text>
+        <text x="753"  y="425">A5</text>
+        <text x="901"  y="425">A3</text>
+        <text x="948"  y="391">A2</text>
+        <text x="1021" y="391">A1</text>
+        <text x="503"  y="431">A9</text>
+        <text x="687"  y="465">A8</text>
+        <text x="438"  y="505">A10</text>
+    </g>
+
+    <!-- ══════════ Подписи направлений (вдоль линий, равный отступ) ══════════ -->
+    <text x="1290" y="195" font-size="17" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">RM</text>
+    <text x="1290" y="235" font-size="14" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">DEPOUL ARAD</text>
+    <text x="1300" y="275" font-size="14" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">DEPOUL ARAD</text>
+    <text x="1300" y="315" font-size="14" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">DEPOUL ARAD</text>
+    <text x="1315" y="355" font-size="14" font-weight="bold" fill="#999999" font-family="Arial, sans-serif" text-anchor="middle">NOT WORK</text>
+    <text x="1500" y="468" font-size="16" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="end">GLOGOVAT &gt;</text>
+    <!-- ══════════ Входные сигналы со стороны GLOGOVAT (на вертикали начала прямой NOT WORK, x=1184): XG над директа (443), XGF под нижней (483) ══════════ -->
+    <g pointer-events="none" font-family="Arial, sans-serif">
+        <circle id="sig-XG" cx="1184" cy="432" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1184" y="421" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XG</text>
+        <circle id="sig-XGF" cx="1184" cy="494" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1184" y="514" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XGF</text>
+    </g>
+    <text x="370" y="555" font-size="18" font-weight="bold" font-style="italic" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">ARADU NOU</text>
+
+    <!-- ══════════ Надпись схемы ══════════ -->
+    <text class="label" x="1490" y="72" text-anchor="end">SCH <tspan font-style="italic">Ⅱ</tspan></text>
+
+
+</svg>
+
+</svg>
+        </div>
+    </div>
+    <div class="bar">
+        <span class="lbl">SCH&nbsp;Ⅰ</span>
+        <input type="range" class="slider" id="slider" min="0" max="1000" value="0">
+        <span class="lbl">SCH&nbsp;Ⅱ · GLOGOVAT&nbsp;&gt;</span>
+        <span class="hint" id="hint"></span>
+    </div>
+</div>
+
+<script>
+const SWP_I = {
+    A31: {cx:514, cy:353, px:457,  py:313},
+    A30: {cx:578, cy:393, px:514,  py:353},
+    A29: {cx:694, cy:393, px:502,  py:273},
+    A28: {cx:764, cy:393, px:826,  py:433},
+    A27: {cx:826, cy:433, px:764,  py:393},
+    A26: {cx:748, cy:433, px:682,  py:473},
+    A25: {cx:682, cy:473, px:748,  py:433},
+    A24: {cx:764, cy:513, px:698,  py:553},
+    A23: {cx:882, cy:513, px:943,  py:473},
+    A22: {cx:943, cy:473, px:882,  py:513},
+    A21: {cx:1046,cy:473, px:983,  py:433},
+    A20: {cx:983, cy:433, px:1046, py:473},
+    A19: {cx:983, cy:393, px:1046, py:353},
+    A18: {cx:1046,cy:353, px:983,  py:393},
+    A17: {cx:1090,cy:433, px:1155, py:393},
+    A16: {cx:1155,cy:393, px:1090, py:433},
+    A15: {cx:1113,cy:473, px:1175, py:513},
+    A14: {cx:1327,cy:313, px:1263, py:353},
+    A13: {cx:1175,cy:513, px:1113, py:473},
+    A12: {cx:1262,cy:513, px:1322, py:553},
+};
+const SWP_II = {
+    A7:  {cx:687,  cy:323, px:753,  py:363},
+    A6:  {cx:753,  cy:363, px:687,  py:323},
+    A4:  {cx:835,  cy:363, px:901,  py:403},
+    A11: {cx:438,  cy:403, px:497,  py:363},
+    A5:  {cx:753,  cy:403, px:687,  py:443},
+    A3:  {cx:901,  cy:403, px:835,  py:363},
+    A2:  {cx:948,  cy:403, px:1248, py:268},
+    A1:  {cx:1021, cy:403, px:1321, py:268},
+    A9:  {cx:503,  cy:443, px:438,  py:483},
+    A8:  {cx:687,  cy:443, px:753,  py:403},
+    A10: {cx:438,  cy:483, px:503,  py:443},
+};
+const SWP = Object.assign({}, SWP_I, SWP_II);
+const igOf = {};
+Object.keys(SWP_I).forEach(id => igOf[id] = "ig-i");
+Object.keys(SWP_II).forEach(id => igOf[id] = "ig-ii");
+
+const L = 35;
+const SW = {};
+Object.keys(SWP).forEach(id => {
+    const d = SWP[id];
+    const vx = d.px - d.cx, vy = d.py - d.cy, m = Math.hypot(vx, vy);
+    const sxSign = d.px > d.cx ? 1 : -1;
+    SW[id] = { cx:d.cx, cy:d.cy, sx:d.cx + L*sxSign, sy:d.cy,
+        dx: Math.round((d.cx + L*vx/m)*10)/10, dy: Math.round((d.cy + L*vy/m)*10)/10 };
+});
+
+const pos = {}, inds = {};
+Object.keys(SW).forEach(id => {
+    pos[id] = 0;
+    const d = SW[id];
+    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    l.setAttribute("x1", d.cx); l.setAttribute("y1", d.cy);
+    l.setAttribute("x2", d.sx); l.setAttribute("y2", d.sy);
+    l.setAttribute("stroke", "#cc0000"); l.setAttribute("stroke-width", "4"); l.setAttribute("stroke-linecap", "round");
+    document.getElementById(igOf[id]).appendChild(l);
+    inds[id] = l;
+});
+
+function applySwitch(id){ const d = SW[id]; inds[id].setAttribute("x2", pos[id]===0?d.sx:d.dx); inds[id].setAttribute("y2", pos[id]===0?d.sy:d.dy); }
+window.setSwitch = function(id, state){ if(!SW[id]) return; pos[id] = state?1:0; applySwitch(id); };
+window.getSwitch = function(id){ return pos[id] || 0; };
+Object.keys(SW).forEach(id => {
+    const el = document.getElementById("n-" + id);
+    if(!el) return;
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => { pos[id] ^= 1; applySwitch(id); });
+});
+
+const viewport = document.getElementById("viewport");
+const strip = document.getElementById("strip");
+const slider = document.getElementById("slider");
+const hint = document.getElementById("hint");
+function maxPan(){ return Math.max(0, strip.scrollWidth - viewport.clientWidth); }
+function apply(){ const frac = slider.value/1000; strip.style.transform = "translateX(" + (-frac*maxPan()) + "px)"; hint.textContent = maxPan()>2 ? Math.round(frac*100)+"%" : "вся схема видна"; }
+slider.addEventListener("input", apply);
+window.addEventListener("resize", apply);
+let dragging=false, startX=0, startVal=0;
+viewport.addEventListener("pointerdown", e => { if(e.target.closest(".sw")) return; dragging=true; startX=e.clientX; startVal=+slider.value; viewport.setPointerCapture(e.pointerId); });
+viewport.addEventListener("pointermove", e => { if(!dragging) return; const mp=maxPan(); if(mp<=0) return; const dv=((startX-e.clientX)/mp)*1000; slider.value=Math.min(1000,Math.max(0,startVal+dv)); apply(); });
+viewport.addEventListener("pointerup", () => dragging=false);
+viewport.addEventListener("pointercancel", () => dragging=false);
+viewport.addEventListener("wheel", e => { const mp=maxPan(); if(mp<=0) return; const delta=(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY); if(delta===0) return; e.preventDefault(); slider.value=Math.min(1000,Math.max(0,+slider.value+(delta/mp)*1000)); apply(); }, { passive:false });
+window.addEventListener("load", () => setTimeout(apply, 60));
+setTimeout(apply, 300);
+</script>
+</body>
+</html>

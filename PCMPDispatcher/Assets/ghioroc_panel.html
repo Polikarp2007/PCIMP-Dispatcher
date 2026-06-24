@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Схема станции GHIOROC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #1a1f2e; background-image: url('fon for table.png'); background-size: cover; background-position: center; background-repeat: no-repeat; font-family: Arial, sans-serif; }
+        .container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        svg { width: 100%; height: auto; max-height: 100%; user-select: none; }
+.ind { transition: x2 0.2s ease-out, y2 0.2s ease-out; }
+    </style>
+</head>
+<body>
+<div class="container">
+<svg viewBox="0 -20 1200 380" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(0, 20)">
+    <text x="15" y="225" font-size="13" font-weight="bold" fill="#000">&lt; GLOGOVAT</text>
+    <text x="1185" y="225" font-size="13" font-weight="bold" fill="#000" text-anchor="end">Paulis.hc &gt;</text>
+    <g fill="#4d4d4d">
+        <rect x="545" y="161" width="230" height="10"/>
+        <rect x="545" y="201" width="230" height="10"/>
+        <rect x="545" y="241" width="230" height="10"/>
+        <rect x="545" y="281" width="230" height="10"/>
+    </g>
+    <!-- Solid track lines — L1 and L4 stop at x=910 (no buffer stop) -->
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt">
+        <line x1="0" y1="200" x2="1200" y2="200"/>
+        <line x1="0" y1="240" x2="1200" y2="240"/>
+        <line x1="440" y1="160" x2="910" y2="160"/>
+        <line x1="440" y1="280" x2="910" y2="280"/>
+    </g>
+    <!-- Green dashed exits (main through lines) -->
+    <g stroke="#00ad47" stroke-width="2.5" stroke-dasharray="5,4">
+        <line x1="1125" y1="200" x2="1200" y2="200"/>
+        <line x1="1090" y1="240" x2="1200" y2="240"/>
+        <line x1="0"    y1="200" x2="155"  y2="200"/>
+        <line x1="0"    y1="240" x2="125"  y2="240"/>
+    </g>
+    <!-- Black dashed diagonals / branch geometry -->
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4">
+        <line x1="125" y1="240" x2="155" y2="200"/>
+        <line x1="265" y1="200" x2="295" y2="240"/>
+        <line x1="395" y1="200" x2="440" y2="160"/>
+        <line x1="395" y1="240" x2="440" y2="280"/>
+        <line x1="910" y1="280" x2="955" y2="240"/>
+        <!-- L1 end connects diagonally down to GH5 (replaces removed GH13 branch) -->
+        <line x1="910" y1="160" x2="955" y2="200"/>
+        <line x1="995" y1="200" x2="1030" y2="240"/>
+        <line x1="1090" y1="240" x2="1125" y2="200"/>
+    </g>
+    <g font-size="16" font-weight="bold" fill="#3457e2" text-anchor="middle">
+        <text x="660" y="152">L1</text>
+        <text x="660" y="192">L2</text>
+        <text x="660" y="232">L3</text>
+        <text x="660" y="272">L4</text>
+    </g>
+    <!-- Track junction dots -->
+    <g fill="#1a1a24">
+        <circle cx="140" cy="220" r="4.5"/>
+        <circle cx="280" cy="220" r="4.5"/>
+        <circle cx="1012.5" cy="220" r="4.5"/>
+        <circle cx="1107.5" cy="220" r="4.5"/>
+    </g>
+
+    <g id="route-layer"></g>
+    <g id="ig"></g>
+
+    <!-- ── Входные светофоры ── -->
+    <g id="signals-layer" pointer-events="none">
+        <!-- PAULIS HALTA сторона: X верх, XF низ -->
+        <circle id="sig-X"  cx="1178" cy="188" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1178" y="177" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X</text>
+
+        <circle id="sig-XF" cx="1178" cy="252" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1178" y="272" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XF</text>
+
+        <!-- Glogovat сторона: YF верх, Y низ -->
+        <circle id="sig-YF" cx="22" cy="188" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="22" y="177" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">YF</text>
+
+        <circle id="sig-Y"  cx="22" cy="252" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="22" y="272" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">Y</text>
+
+        <!-- X4 / Y4 — L4 track y=280, spread near track ends -->
+        <circle id="sig-X4"  cx="460" cy="269" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="471" y="273" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">X4</text>
+        <circle id="sig-Y4"  cx="893" cy="269" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="882" y="273" font-size="13" font-weight="bold" fill="#111111" text-anchor="end">Y4</text>
+
+        <!-- XIII / YIII — L3 track y=240 -->
+        <circle id="sig-XIII"  cx="445" cy="229" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="456" y="233" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XIII</text>
+        <circle id="sig-YIII" cx="905" cy="229" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="894" y="233" font-size="13" font-weight="bold" fill="#111111" text-anchor="end">YIII</text>
+
+        <!-- XII / YII — L2 track y=200 -->
+        <circle id="sig-XII"  cx="445" cy="189" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="456" y="193" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XII</text>
+        <circle id="sig-YII" cx="905" cy="189" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="894" y="193" font-size="13" font-weight="bold" fill="#111111" text-anchor="end">YII</text>
+
+        <!-- X1 / Y1 — L1 track y=160 -->
+        <circle id="sig-X1"  cx="475" cy="149" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="486" y="153" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">X1</text>
+        <circle id="sig-Y1"  cx="870" cy="149" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="859" y="153" font-size="13" font-weight="bold" fill="#111111" text-anchor="end">Y1</text>
+    </g>
+
+    <!-- Switch circles -->
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-GH12" cx="125"  cy="240" r="6" class="sw"/>
+        <circle id="n-GH11" cx="155"  cy="200" r="6" class="sw"/>
+        <circle id="n-GH10" cx="265"  cy="200" r="6" class="sw"/>
+        <circle id="n-GH9"  cx="295"  cy="240" r="6" class="sw"/>
+        <circle id="n-GH7"  cx="395"  cy="200" r="6" class="sw"/>
+        <circle id="n-GH8"  cx="395"  cy="240" r="6" class="sw"/>
+        <circle id="n-GH5"  cx="955"  cy="200" r="6" class="sw"/>
+        <circle id="n-GH6"  cx="955"  cy="240" r="6" class="sw"/>
+        <circle id="n-GH4"  cx="995"  cy="200" r="6" class="sw"/>
+        <circle id="n-GH3"  cx="1030" cy="240" r="6" class="sw"/>
+        <circle id="n-GH2"  cx="1090" cy="240" r="6" class="sw"/>
+        <circle id="n-GH1"  cx="1125" cy="200" r="6" class="sw"/>
+    </g>
+    <!-- Switch labels — x centered on circle cx -->
+    <g font-size="14" font-weight="bold" fill="#f00" pointer-events="none">
+        <text x="125"  y="260" text-anchor="middle">GH12</text>
+        <text x="155"  y="192" text-anchor="middle">GH11</text>
+        <text x="265"  y="192" text-anchor="middle">GH10</text>
+        <text x="295"  y="260" text-anchor="middle">GH9</text>
+        <text x="375"  y="192" text-anchor="middle">GH7</text>
+        <text x="375"  y="260" text-anchor="middle">GH8</text>
+        <text x="975"  y="192" text-anchor="middle">GH5</text>
+        <text x="975"  y="260" text-anchor="middle">GH6</text>
+        <text x="1015" y="192" text-anchor="middle">GH4</text>
+        <text x="1050" y="260" text-anchor="middle">GH3</text>
+        <text x="1090" y="260" text-anchor="middle">GH2</text>
+        <text x="1125" y="192" text-anchor="middle">GH1</text>
+    </g>
+    </g>
+</svg>
+</div>
+<script>
+const SW = {
+    GH12:{cx:125,cy:240,sx:160,sy:240,dx:146,dy:212},
+    GH11:{cx:155,cy:200,sx:120,sy:200,dx:134,dy:228},
+    GH10:{cx:265,cy:200,sx:300,sy:200,dx:286,dy:228},
+    GH9: {cx:295,cy:240,sx:260,sy:240,dx:274,dy:212},
+    GH7: {cx:395,cy:200,sx:430,sy:200,dx:421,dy:177},
+    GH8: {cx:395,cy:240,sx:430,sy:240,dx:421,dy:263},
+    GH5: {cx:955,cy:200,sx:920,sy:200,dx:929,dy:177},
+    GH6: {cx:955,cy:240,sx:920,sy:240,dx:929,dy:263},
+    GH4: {cx:995,cy:200,sx:1030,sy:200,dx:1018,dy:226},
+    GH3: {cx:1030,cy:240,sx:995,sy:240,dx:1007,dy:214},
+    GH2: {cx:1090,cy:240,sx:1125,sy:240,dx:1113,dy:214},
+    GH1: {cx:1125,cy:200,sx:1090,sy:200,dx:1102,dy:226},
+};
+
+const pos = {};
+Object.keys(SW).forEach(id => pos[id] = 0);
+
+const ig = document.getElementById("ig");
+const inds = {};
+Object.keys(SW).forEach(id => {
+    const d = SW[id];
+    const l = document.createElementNS("http://www.w3.org/2000/svg","line");
+    l.setAttribute("x1",d.cx); l.setAttribute("y1",d.cy);
+    l.setAttribute("x2",d.sx); l.setAttribute("y2",d.sy);
+    l.setAttribute("stroke","#cc0000"); l.setAttribute("stroke-width","4");
+    l.setAttribute("stroke-linecap","round"); l.setAttribute("class","ind");
+    ig.appendChild(l); inds[id] = l;
+});
+
+// Public API for external control (called from C# via ExecuteScriptAsync)
+window.setSwitch = function(id, state) {
+    if (!SW[id]) return;
+    pos[id] = state ? 1 : 0;
+    const d = SW[id];
+    inds[id].setAttribute("x2", pos[id]===0 ? d.sx : d.dx);
+    inds[id].setAttribute("y2", pos[id]===0 ? d.sy : d.dy);
+};
+
+window.getSwitch = function(id) { return pos[id] || 0; };
+
+window.buildRoute = function(ids, color) {
+    const layer = document.getElementById("route-layer");
+    layer.innerHTML = "";
+    Object.keys(inds).forEach(id => inds[id].setAttribute("stroke","#cc0000"));
+    if (!ids || ids.length < 2) return;
+    const col = color || "#00ff55";
+    const pts = [];
+    for (let i = 0; i < ids.length; i++) {
+        const d = SW[ids[i]], st = pos[ids[i]] || 0;
+        if (!d) continue;
+        pts.push([d.cx, d.cy]);
+        if (i < ids.length - 1) {
+            const nid = ids[i+1], nd = SW[nid], stB = pos[nid] || 0;
+            if (!nd) continue;
+            // Special: L1 routing via GH7↔GH5 when both deviated
+            if (((ids[i]==="GH7"&&nid==="GH5")||(ids[i]==="GH5"&&nid==="GH7")) && pos.GH7===1 && pos.GH5===1) {
+                pts.push(ids[i]==="GH7" ? [440,160] : [910,160]);
+                pts.push(ids[i]==="GH7" ? [910,160] : [440,160]);
+                continue;
+            }
+            // Special: L4 routing via GH8↔GH6 when both deviated
+            if (((ids[i]==="GH8"&&nid==="GH6")||(ids[i]==="GH6"&&nid==="GH8")) && pos.GH8===1 && pos.GH6===1) {
+                pts.push(ids[i]==="GH8" ? [440,280] : [910,280]);
+                pts.push(ids[i]==="GH8" ? [910,280] : [440,280]);
+                continue;
+            }
+            const ex = st===0?d.sx:d.dx, ey = st===0?d.sy:d.dy;
+            const eDY = ey - d.cy;
+            if (Math.abs(nd.cy - d.cy) > 0.1) {
+                let added = false;
+                if (Math.abs(eDY) > 0.1) {
+                    const t = (nd.cy - d.cy) / eDY;
+                    if (t > 0) {
+                        const jx = d.cx + t*(ex - d.cx);
+                        if ((jx - d.cx) * (nd.cx - d.cx) >= -1) {
+                            pts.push([jx, nd.cy]); added = true;
+                        }
+                    }
+                }
+                if (!added) {
+                    for (let bSt = 0; bSt <= 1 && !added; bSt++) {
+                        const bEx = bSt===0?nd.sx:nd.dx, bEy = bSt===0?nd.sy:nd.dy;
+                        const bDY = bEy - nd.cy;
+                        if (Math.abs(bDY) > 0.1) {
+                            const tb = (d.cy - nd.cy) / bDY;
+                            if (tb > 0) {
+                                pts.push([nd.cx + tb*(bEx-nd.cx), d.cy]);
+                                added = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    const pl = document.createElementNS("http://www.w3.org/2000/svg","polyline");
+    pl.setAttribute("points", pts.map(p=>p[0]+","+p[1]).join(" "));
+    pl.setAttribute("stroke", col);
+    pl.setAttribute("stroke-width","5");
+    pl.setAttribute("fill","none");
+    pl.setAttribute("stroke-linecap","round");
+    pl.setAttribute("stroke-linejoin","round");
+    pl.setAttribute("opacity","0.85");
+    layer.appendChild(pl);
+    ids.forEach(id => { if(inds[id]) inds[id].setAttribute("stroke","#aaff00"); });
+};
+
+window.getAllSwitches = function() { return pos; };
+let _lastConsistClick = null;
+window.getAndClearConsistClick = function() { var r = _lastConsistClick; _lastConsistClick = null; return r || null; };
+
+window.addRoute = function(ids, color) {
+    const layer = document.getElementById("route-layer");
+    if (!ids || ids.length < 2) return;
+    const col = color || "#00dd55";
+    const pts = [];
+    for (let i = 0; i < ids.length; i++) {
+        const d = SW[ids[i]], st = pos[ids[i]] || 0;
+        if (!d) continue;
+        pts.push([d.cx, d.cy]);
+        if (i < ids.length - 1) {
+            const nid = ids[i+1], nd = SW[nid];
+            if (!nd) continue;
+            // Special: L1 routing via GH7↔GH5 when both deviated
+            if (((ids[i]==="GH7"&&nid==="GH5")||(ids[i]==="GH5"&&nid==="GH7")) && pos.GH7===1 && pos.GH5===1) {
+                pts.push(ids[i]==="GH7" ? [440,160] : [910,160]);
+                pts.push(ids[i]==="GH7" ? [910,160] : [440,160]);
+                continue;
+            }
+            // Special: L4 routing via GH8↔GH6 when both deviated
+            if (((ids[i]==="GH8"&&nid==="GH6")||(ids[i]==="GH6"&&nid==="GH8")) && pos.GH8===1 && pos.GH6===1) {
+                pts.push(ids[i]==="GH8" ? [440,280] : [910,280]);
+                pts.push(ids[i]==="GH8" ? [910,280] : [440,280]);
+                continue;
+            }
+            const ex = st===0?d.sx:d.dx, ey = st===0?d.sy:d.dy;
+            const eDY = ey - d.cy;
+            if (Math.abs(nd.cy - d.cy) > 0.1) {
+                let added = false;
+                if (Math.abs(eDY) > 0.1) {
+                    const t = (nd.cy - d.cy) / eDY;
+                    if (t > 0) {
+                        const jx = d.cx + t*(ex - d.cx);
+                        if ((jx - d.cx) * (nd.cx - d.cx) >= -1) { pts.push([jx, nd.cy]); added = true; }
+                    }
+                }
+                if (!added) {
+                    for (let bSt = 0; bSt <= 1 && !added; bSt++) {
+                        const bEx = bSt===0?nd.sx:nd.dx, bEy = bSt===0?nd.sy:nd.dy;
+                        const bDY = bEy - nd.cy;
+                        if (Math.abs(bDY) > 0.1) {
+                            const tb = (d.cy - nd.cy) / bDY;
+                            if (tb > 0) { pts.push([nd.cx + tb*(bEx-nd.cx), d.cy]); added = true; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    const pl = document.createElementNS("http://www.w3.org/2000/svg","polyline");
+    pl.setAttribute("points", pts.map(p=>p[0]+","+p[1]).join(" "));
+    pl.setAttribute("stroke", col);
+    pl.setAttribute("stroke-width","5");
+    pl.setAttribute("fill","none");
+    pl.setAttribute("stroke-linecap","round");
+    pl.setAttribute("stroke-linejoin","round");
+    pl.setAttribute("opacity","0.85");
+    layer.appendChild(pl);
+    ids.forEach(id => { if(inds[id]) inds[id].setAttribute("stroke","#aaff00"); });
+};
+
+window.setSignal = function(id, state) {
+    const el = document.getElementById('sig-' + id);
+    if (!el) return;
+    const cols = ['#ff2020', '#ffcc00', '#00cc44'];
+    el.setAttribute('fill', cols[state] ?? cols[0]);
+};
+
+window.clearRoute = function() {
+    document.getElementById("route-layer").innerHTML = "";
+    Object.keys(inds).forEach(id => inds[id].setAttribute("stroke","#cc0000"));
+};
+
+window.highlightSwitch = function(id, on) {
+    if (!inds[id]) return;
+    inds[id].setAttribute("stroke", on ? "#3458e1" : "#cc0000");
+    inds[id].setAttribute("stroke-width", on ? "6" : "4");
+};
+
+const locked = new Set();
+window.lockSwitch = function(id, on) {
+    if (on) locked.add(id); else locked.delete(id);
+    const el = document.getElementById("n-"+id);
+    if (!el) return;
+    el.style.cursor = on ? "not-allowed" : "pointer";
+    el.setAttribute("stroke", on ? "#888888" : "#ff0000");
+};
+
+let consistMode = false;
+window.setConsistMode = function(on) { consistMode = on; };
+
+Object.keys(SW).forEach(id => {
+    const el = document.getElementById("n-"+id);
+    if (!el) return;
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+        if (locked.has(id)) return;
+        if (consistMode) {
+            _lastConsistClick = id;
+            pos[id] ^= 1;
+            const d = SW[id];
+            inds[id].setAttribute("x2", pos[id]===0 ? d.sx : d.dx);
+            inds[id].setAttribute("y2", pos[id]===0 ? d.sy : d.dy);
+            return;
+        }
+        pos[id] ^= 1;
+        const d = SW[id];
+        inds[id].setAttribute("x2", pos[id]===0 ? d.sx : d.dx);
+        inds[id].setAttribute("y2", pos[id]===0 ? d.sy : d.dy);
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Glogovat — полная схема</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #fff; font-family: Arial, sans-serif; }
+    .wrap { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    .viewport { flex: 1 1 auto; position: relative; overflow: hidden; background: #fff; }
+    .strip { position: absolute; top: 0; left: 0; height: 100%; display: flex; align-items: stretch; will-change: transform; }
+    .strip svg.board { height: 100%; width: auto; aspect-ratio: 2400 / 430; display: block; flex: 0 0 auto; user-select: none; }
+    .label { fill: #d40000; font-style: italic; font-weight: 900; font-size: 22px; font-family: Arial, sans-serif; }
+
+    .bar { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 2px 8px; background: #f4f4f5; border-top: 1px solid #e8e8e8; opacity: 0.55; }
+    .bar .lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: #c0152f; white-space: nowrap; user-select: none; }
+    .slider { -webkit-appearance: none; appearance: none; flex: 1 1 auto; height: 3px; border-radius: 2px; background: #c8c8cc; outline: none; cursor: pointer; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #c0152f; border: 1px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); cursor: grab; }
+    .slider::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: #c0152f; border: 1px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); cursor: grab; }
+    .hint { font-size: 9px; color: #bbb; white-space: nowrap; user-select: none; }
+    .ind { transition: x2 0.2s ease-out, y2 0.2s ease-out; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="viewport" id="viewport">
+        <div class="strip" id="strip">
+<svg class="board" viewBox="0 0 2400 430" xmlns="http://www.w3.org/2000/svg">
+
+<!-- ═══════════ ЛЕВАЯ ЧАСТЬ — SCH II (сторона ARAD) ═══════════ -->
+<svg x="0" y="0" width="1200" height="430" viewBox="0 -20 1200 430">
+    <g transform="translate(0, 90)">
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" fill="none">
+        <line x1="916" y1="30"  x2="1200" y2="30"/>
+        <line x1="763" y1="70"  x2="1200" y2="70"/>
+        <line x1="0" y1="110" x2="1200" y2="110"/>
+        <line x1="0" y1="150" x2="1200" y2="150"/>
+        <line x1="0" y1="190" x2="1200" y2="190"/>
+        <line x1="268" y1="230" x2="1200" y2="230"/>
+        <line x1="417" y1="270" x2="455" y2="270"/>
+        <line x1="455" y1="270" x2="857" y2="270" stroke="#9a9a9a"/>
+        <line x1="857" y1="270" x2="944" y2="270"/>
+        <line x1="857" y1="310" x2="963"  y2="310"/>
+    </g>
+    <g stroke="#000" stroke-width="2.5">
+        <line x1="268" y1="222" x2="268" y2="238"/>
+        <line x1="857" y1="302" x2="857" y2="318"/>
+    </g>
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="231"  y1="110" x2="306"  y2="150"/>
+        <line x1="431"  y1="190" x2="482"  y2="150"/>
+        <line x1="537"  y1="150" x2="588"  y2="110"/>
+        <line x1="697"  y1="150" x2="772"  y2="190"/>
+        <line x1="926"  y1="190" x2="988"  y2="230"/>
+        <line x1="1104" y1="230" x2="1154" y2="190"/>
+        <line x1="696"  y1="110" x2="763"  y2="70"/>
+        <line x1="861"  y1="70"  x2="916"  y2="30"/>
+        <line x1="364"  y1="230" x2="417"  y2="270"/>
+        <line x1="944"  y1="270" x2="1010" y2="270"/>
+        <line x1="1050" y1="230" x2="1010" y2="270"/>
+        <line x1="963"  y1="310" x2="1010" y2="270"/>
+    </g>
+    <g stroke="#00ad47" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="0" y1="110" x2="231" y2="110"/>
+        <line x1="0" y1="150" x2="306" y2="150"/>
+        <line x1="0" y1="190" x2="431" y2="190"/>
+    </g>
+    <g fill="#1a1a24">
+        <circle cx="268.5" cy="130" r="4.5"/>
+        <circle cx="456.5" cy="170" r="4.5"/>
+        <circle cx="562.5" cy="130" r="4.5"/>
+        <circle cx="734.5" cy="170" r="4.5"/>
+        <circle cx="957"   cy="210" r="4.5"/>
+        <circle cx="1129"  cy="210" r="4.5"/>
+    </g>
+    <text x="656" y="263" font-size="9" font-weight="bold" fill="#9a9a9a" font-family="Arial, sans-serif" text-anchor="middle" letter-spacing="1">ABANDONED</text>
+    <g id="route-layer-left"></g>
+    <g id="ig-arad"></g>
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-G26" cx="231"  cy="110" r="6" class="sw"/>
+        <circle id="n-G25" cx="306"  cy="150" r="6" class="sw"/>
+        <circle id="n-G24" cx="364"  cy="230" r="6" class="sw"/>
+        <circle id="n-G23" cx="431"  cy="190" r="6" class="sw"/>
+        <circle id="n-G22" cx="482"  cy="150" r="6" class="sw"/>
+        <circle id="n-G21" cx="537"  cy="150" r="6" class="sw"/>
+        <circle id="n-G20" cx="588"  cy="110" r="6" class="sw"/>
+        <circle id="n-G17" cx="696"  cy="110" r="6" class="sw"/>
+        <circle id="n-G18" cx="697"  cy="150" r="6" class="sw"/>
+        <circle id="n-G19" cx="772"  cy="190" r="6" class="sw"/>
+        <circle id="n-G16" cx="861"  cy="70"  r="6" class="sw"/>
+        <circle id="n-G15" cx="926"  cy="190" r="6" class="sw"/>
+        <circle id="n-G13" cx="988"  cy="230" r="6" class="sw"/>
+        <circle id="n-G14" cx="1010" cy="270" r="6" class="sw"/>
+        <circle id="n-G12" cx="1050" cy="230" r="6" class="sw"/>
+        <circle id="n-G11" cx="1104" cy="230" r="6" class="sw"/>
+        <circle id="n-G10" cx="1154" cy="190" r="6" class="sw"/>
+    </g>
+    <g font-size="14" font-weight="bold" fill="#f00" font-family="Arial, sans-serif" pointer-events="none" text-anchor="middle">
+        <text x="231"  y="98">G26</text>
+        <text x="306"  y="173">G25</text>
+        <text x="364"  y="218">G24</text>
+        <text x="431"  y="213">G23</text>
+        <text x="482"  y="138">G22</text>
+        <text x="537"  y="173">G21</text>
+        <text x="588"  y="98">G20</text>
+        <text x="696"  y="98">G17</text>
+        <text x="697"  y="138">G18</text>
+        <text x="772"  y="213">G19</text>
+        <text x="861"  y="58">G16</text>
+        <text x="926"  y="178">G15</text>
+        <text x="988"  y="253">G13</text>
+        <text x="1010" y="293">G14</text>
+        <text x="1050" y="218">G12</text>
+        <text x="1104" y="253">G11</text>
+        <text x="1154" y="178">G10</text>
+    </g>
+    <text x="8" y="135" font-size="14" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="start">&lt; ARAD</text>
+    <text x="8" y="207" font-size="14" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="start">&lt; ARADU NOU</text>
+    <g pointer-events="none" font-family="Arial, sans-serif">
+        <circle id="sig-X2" cx="1182" cy="178" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1182" y="167" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X2</text>
+        <circle id="sig-X1" cx="1182" cy="218" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1182" y="207" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X1</text>
+        <circle id="sig-XIV" cx="896" cy="98" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="907" y="102" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XIV</text>
+        <circle id="sig-XIII" cx="896" cy="138" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="907" y="142" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">XIII</text>
+        <circle id="sig-X5" cx="985" cy="58" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="985" y="47" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X5</text>
+        <circle id="sig-X6" cx="965" cy="18" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="965" y="7" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X6</text>
+        <circle id="sig-YAF" cx="125" cy="98" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="136" y="102" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">YAF</text>
+        <circle id="sig-YA" cx="125" cy="162" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="136" y="166" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">YA</text>
+        <circle id="sig-Y" cx="125" cy="202" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="136" y="206" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">Y</text>
+    </g>
+    <text class="label" x="1150" y="-80" text-anchor="end">SCH <tspan font-style="italic">Ⅱ</tspan></text>
+    </g>
+</svg>
+
+<!-- ═══════════ ПРАВАЯ ЧАСТЬ — SCH I (сторона GHIOROC) ═══════════ -->
+<svg x="1200" y="0" width="1200" height="430" viewBox="0 -20 1200 430">
+    <g transform="translate(0, 20)">
+    <g stroke="#000" stroke-width="2.5" stroke-linecap="butt" fill="none">
+        <line x1="0" y1="100" x2="637"  y2="100"/>
+        <line x1="0" y1="140" x2="748"  y2="140"/>
+        <line x1="0" y1="180" x2="1200" y2="180"/>
+        <line x1="0" y1="220" x2="1200" y2="220"/>
+        <line x1="0" y1="260" x2="748"  y2="260"/>
+        <line x1="0" y1="300" x2="526"  y2="300"/>
+    </g>
+    <g stroke="#000" stroke-width="2.5" stroke-dasharray="5,4" fill="none">
+        <line x1="637" y1="100" x2="681"  y2="140"/>
+        <line x1="748" y1="140" x2="792"  y2="180"/>
+        <line x1="748" y1="260" x2="792"  y2="220"/>
+        <line x1="526" y1="300" x2="570"  y2="260"/>
+        <line x1="859"  y1="180" x2="903"  y2="220"/>
+        <line x1="1034" y1="220" x2="1064" y2="180"/>
+    </g>
+    <g stroke="#00ad47" stroke-width="2.5" stroke-dasharray="5,4">
+        <line x1="1064" y1="180" x2="1200" y2="180"/>
+        <line x1="1034" y1="220" x2="1200" y2="220"/>
+    </g>
+    <g fill="#1a1a24">
+        <circle cx="881"  cy="200" r="4.5"/>
+        <circle cx="1049" cy="200" r="4.5"/>
+    </g>
+    <g>
+        <g fill="#7d7d7d">
+            <rect x="120" y="92"  width="230" height="16"/>
+            <rect x="120" y="132" width="230" height="16"/>
+            <rect x="120" y="172" width="230" height="16"/>
+            <rect x="120" y="212" width="230" height="16"/>
+            <rect x="120" y="292" width="230" height="16"/>
+        </g>
+        <g font-family="Arial, sans-serif" font-weight="bold" fill="#fff" text-anchor="middle">
+            <text x="235" y="104"><tspan font-size="12">L6</tspan><tspan font-size="10">(MARFA)</tspan></text>
+            <text x="235" y="144"><tspan font-size="12">L5</tspan><tspan font-size="10">(MARFA)</tspan></text>
+            <text x="235" y="184"><tspan font-size="12">L4</tspan><tspan font-size="10">(MARFA)</tspan></text>
+            <text x="235" y="224"><tspan font-size="12">L3</tspan><tspan font-size="10">(MARFA)</tspan></text>
+            <text x="235" y="304"><tspan font-size="12">L1</tspan><tspan font-size="10">(MARFA)</tspan></text>
+        </g>
+        <rect x="600" y="252" width="95" height="16" fill="#d3d3d3"/>
+        <text x="647" y="264" font-family="Arial, sans-serif" font-weight="bold" fill="#111" text-anchor="middle"><tspan font-size="12">L2</tspan><tspan font-size="10">(Calatori)</tspan></text>
+    </g>
+    <line x1="968.5" y1="220" x2="1010" y2="260" stroke="#000" stroke-width="2.5" stroke-dasharray="5,4"/>
+    <line x1="1010" y1="260" x2="1090" y2="260" stroke="#000" stroke-width="2.5"/>
+    <line x1="1090" y1="252" x2="1090" y2="268" stroke="#000" stroke-width="2.5"/>
+    <text x="1060" y="281" font-size="13" font-style="italic" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="middle">RM</text>
+    <g id="route-layer-right"></g>
+    <g id="ig-ghioroc"></g>
+    <g fill="#fff" stroke="#f00" stroke-width="2.5">
+        <circle id="n-G8" cx="681"  cy="140" r="6" class="sw"/>
+        <circle id="n-G7" cx="792"  cy="180" r="6" class="sw"/>
+        <circle id="n-G6" cx="792"  cy="220" r="6" class="sw"/>
+        <circle id="n-G9" cx="570"  cy="260" r="6" class="sw"/>
+        <circle id="n-G5" cx="859"  cy="180" r="6" class="sw"/>
+        <circle id="n-G4" cx="903"  cy="220" r="6" class="sw"/>
+        <circle id="n-G2" cx="1034" cy="220" r="6" class="sw"/>
+        <circle id="n-G3" cx="968.5" cy="220" r="6" class="sw"/>
+        <circle id="n-G1" cx="1064" cy="180" r="6" class="sw"/>
+    </g>
+    <g font-size="14" font-weight="bold" fill="#f00" font-family="Arial, sans-serif" pointer-events="none" text-anchor="middle">
+        <text x="681"   y="128">G8</text>
+        <text x="792"   y="168">G7</text>
+        <text x="859"   y="168">G5</text>
+        <text x="1064"  y="168">G1</text>
+        <text x="792"   y="243">G6</text>
+        <text x="903"   y="243">G4</text>
+        <text x="1034"  y="243">G2</text>
+        <text x="968.5" y="204">G3</text>
+        <text x="570"   y="248">G9</text>
+    </g>
+    <g pointer-events="none" font-family="Arial, sans-serif">
+        <circle id="sig-X" cx="1180" cy="168" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1180" y="157" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">X</text>
+        <circle id="sig-XF" cx="1180" cy="232" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="1180" y="252" font-size="13" font-weight="bold" fill="#111111" text-anchor="middle">XF</text>
+        <circle id="sig-Y1" cx="480" cy="312" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="491" y="316" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">Y1</text>
+        <circle id="sig-Y2" cx="715" cy="272" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="726" y="276" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">Y2</text>
+        <circle id="sig-YIII" cx="647" cy="232" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="658" y="236" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">YIII</text>
+        <circle id="sig-YIV" cx="647" cy="192" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="658" y="196" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">YIV</text>
+        <circle id="sig-Y6" cx="605" cy="112" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="616" y="116" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">Y6</text>
+        <circle id="sig-Y5" cx="605" cy="152" r="7" fill="#ff2020" stroke="#111111" stroke-width="2"/>
+        <text x="616" y="156" font-size="13" font-weight="bold" fill="#111111" text-anchor="start">Y5</text>
+    </g>
+    <text x="1196" y="205" font-size="13" font-weight="bold" fill="#000" font-family="Arial, sans-serif" text-anchor="end">GHIOROC &gt;</text>
+    <text class="label" x="1150" y="-10" text-anchor="end">SCH <tspan font-style="italic">Ⅰ</tspan></text>
+    </g>
+</svg>
+
+</svg>
+        </div>
+    </div>
+    <div class="bar">
+        <span class="lbl">&lt; ARAD · SCH&nbsp;Ⅱ</span>
+        <input type="range" class="slider" id="slider" min="0" max="1000" value="0">
+        <span class="lbl">SCH&nbsp;Ⅰ · GHIOROC&nbsp;&gt;</span>
+        <span class="hint" id="hint"></span>
+    </div>
+</div>
+
+<script>
+// ═══ Геометрия всех стрелок (обе горловины в одной системе) ═══
+// cx,cy — центр кружка; sx,sy — конец остряка прямо (0); dx,dy — отклонено (1). Длина 35.
+const SW_ARAD = {
+    G26: {cx:231, cy:110, sx:266, sy:110, dx:261.9, dy:126.5},
+    G25: {cx:306, cy:150, sx:271, sy:150, dx:275.1, dy:133.5},
+    G24: {cx:364, cy:230, sx:399, sy:230, dx:391.9, dy:251.1},
+    G23: {cx:431, cy:190, sx:466, sy:190, dx:458.5, dy:168.4},
+    G22: {cx:482, cy:150, sx:447, sy:150, dx:454.5, dy:171.6},
+    G21: {cx:537, cy:150, sx:572, sy:150, dx:564.5, dy:128.4},
+    G20: {cx:588, cy:110, sx:553, sy:110, dx:560.5, dy:131.6},
+    G17: {cx:696, cy:110, sx:731, sy:110, dx:726.1, dy:92.1},
+    G18: {cx:697, cy:150, sx:732, sy:150, dx:727.9, dy:166.5},
+    G19: {cx:772, cy:190, sx:737, sy:190, dx:741.1, dy:173.5},
+    G16: {cx:861, cy:70, sx:896, sy:70, dx:889.3, dy:49.4},
+    G15: {cx:926, cy:190, sx:961, sy:190, dx:955.4, dy:209},
+    G13: {cx:988, cy:230, sx:953, sy:230, dx:958.6, dy:211},
+    G12: {cx:1050, cy:230, sx:1015, sy:230, dx:1025.3, dy:254.7},
+    G11: {cx:1104, cy:230, sx:1139, sy:230, dx:1131.3, dy:208.1},
+    G10: {cx:1154, cy:190, sx:1119, sy:190, dx:1126.7, dy:211.9},
+    G14: {cx:1010, cy:270, sx:975, sy:270, dx:983.3, dy:292.7},
+};
+const SW_GHIO = {
+    G8: {cx:681,  cy:140, sx:646,  sy:140, dx:655,  dy:116},
+    G7: {cx:792,  cy:180, sx:757,  sy:180, dx:766,  dy:156},
+    G6: {cx:792,  cy:220, sx:757,  sy:220, dx:766,  dy:243},
+    G9: {cx:570,  cy:260, sx:535,  sy:260, dx:544,  dy:283},
+    G5: {cx:859,  cy:180, sx:894,  sy:180, dx:885,  dy:203},
+    G4: {cx:903,  cy:220, sx:868,  sy:220, dx:877,  dy:196},
+    G2: {cx:1034, cy:220, sx:1069, sy:220, dx:1055, dy:192},
+    G1: {cx:1064, cy:180, sx:1029, sy:180, dx:1043, dy:208},
+    G3: {cx:968.5, cy:220, sx:1003.5, sy:220, dx:993.7, dy:244.3},
+};
+const SW = Object.assign({}, SW_ARAD, SW_GHIO);
+
+const pos = {};
+const inds = {};
+Object.keys(SW).forEach(id => pos[id] = 0);
+
+function buildInds(dict, groupId) {
+    const g = document.getElementById(groupId);
+    Object.keys(dict).forEach(id => {
+        const d = dict[id];
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        l.setAttribute("x1", d.cx); l.setAttribute("y1", d.cy);
+        l.setAttribute("x2", d.sx); l.setAttribute("y2", d.sy);
+        l.setAttribute("stroke", "#cc0000");
+        l.setAttribute("stroke-width", "4");
+        l.setAttribute("stroke-linecap", "round");
+        l.setAttribute("class", "ind");
+        g.appendChild(l);
+        inds[id] = l;
+    });
+}
+buildInds(SW_ARAD, "ig-arad");
+buildInds(SW_GHIO, "ig-ghioroc");
+
+function applySwitch(id) {
+    const d = SW[id];
+    inds[id].setAttribute("x2", pos[id] === 0 ? d.sx : d.dx);
+    inds[id].setAttribute("y2", pos[id] === 0 ? d.sy : d.dy);
+}
+
+// ═══ Публичный API для C# (WebView2 ExecuteScriptAsync) ═══
+window.setSwitch = function(id, state) { if (!SW[id]) return; pos[id] = state ? 1 : 0; applySwitch(id); };
+window.getSwitch = function(id) { return pos[id] || 0; };
+window.getAllSwitches = function() { return pos; };
+
+// ═══ Consist click API ═══
+let _lastConsistClick = null;
+window.getAndClearConsistClick = function() { var r = _lastConsistClick; _lastConsistClick = null; return r || null; };
+let _consistMode = false;
+window.setConsistMode = function(on) { _consistMode = on; };
+
+// ═══ Outer coordinate helpers (both panels unified) ═══
+// Left SVG:  g translate(0,90), viewBox y-offset -20  → outer_cy = local_cy + 110
+// Right SVG: x=1200, g translate(0,20), viewBox y-offset -20 → outer_cx = local_cx + 1200, outer_cy = local_cy + 40
+const ARAD_IDS = new Set(Object.keys(SW_ARAD));
+function toOuter(id, d) {
+    return ARAD_IDS.has(id)
+        ? { cx: d.cx,        cy: d.cy + 110, sx: d.sx,        sy: d.sy + 110, dx: d.dx,        dy: d.dy + 110 }
+        : { cx: d.cx + 1200, cy: d.cy + 40,  sx: d.sx + 1200, sy: d.sy + 40,  dx: d.dx + 1200, dy: d.dy + 40  };
+}
+
+// ═══ Route point list in outer coordinate space (same algorithm as Paulis/Ghioroc) ═══
+function routePoints(ids) {
+    const pts = [];
+    for (let i = 0; i < ids.length; i++) {
+        const id = ids[i], d = SW[id];
+        if (!d) continue;
+        const o = toOuter(id, d), st = pos[id] || 0;
+        pts.push([o.cx, o.cy]);
+        if (i < ids.length - 1) {
+            const nid = ids[i+1], nd = SW[nid];
+            if (!nd) continue;
+            const no = toOuter(nid, nd);
+
+            // ── Hardcoded cross-panel topology (G16 ↔ G8) ──
+            // G16 left (pos=1) + G8 right (pos=1) → route via L6 (outer y=140, upper dashed track)
+            // G16 right (pos=0) + G8 left (pos=0) → route stays on L5 (outer y=180, straight)
+            if ((id==="G16" && nid==="G8") || (id==="G8" && nid==="G16")) {
+                if (pos.G16===1 && pos.G8===1) {
+                    // Both deflected → upper L6 track
+                    // G16 dashed end: local (916,30) → outer (916,140)
+                    // G8  dashed end: local (637,100) → outer (1837,140)
+                    if (id==="G16") { pts.push([916,140]); pts.push([1837,140]); }
+                    else             { pts.push([1837,140]); pts.push([916,140]); }
+                }
+                // pos=0 both → centers already at outer y=180, straight line handled by default
+                continue;
+            }
+
+            const ex = st===0 ? o.sx : o.dx, ey = st===0 ? o.sy : o.dy;
+            const eDY = ey - o.cy;
+            if (Math.abs(no.cy - o.cy) > 0.1) {
+                let added = false;
+                if (Math.abs(eDY) > 0.1) {
+                    const t = (no.cy - o.cy) / eDY;
+                    if (t > 0) {
+                        const jx = o.cx + t * (ex - o.cx);
+                        if ((jx - o.cx) * (no.cx - o.cx) >= -1) { pts.push([jx, no.cy]); added = true; }
+                    }
+                }
+                if (!added) {
+                    for (let bSt = 0; bSt <= 1 && !added; bSt++) {
+                        const bEx = bSt===0 ? no.sx : no.dx, bEy = bSt===0 ? no.sy : no.dy;
+                        const bDY = bEy - no.cy;
+                        if (Math.abs(bDY) > 0.1) {
+                            const tb = (o.cy - no.cy) / bDY;
+                            if (tb > 0) { pts.push([no.cx + tb*(bEx - no.cx), o.cy]); added = true; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pts;
+}
+
+// ═══ Route drawing — split outer points into per-panel layers ═══
+function drawRoute(pts, col) {
+    if (pts.length < 2) return;
+    const layerL = document.getElementById("route-layer-left");
+    const layerR = document.getElementById("route-layer-right");
+    const leftPts = [], rightPts = [];
+    for (let i = 0; i < pts.length; i++) {
+        const [x, y] = pts[i];
+        if (x > 1200) rightPts.push([x - 1200, y - 40]);
+        else           leftPts.push([x,         y - 110]);
+        if (i < pts.length - 1) {
+            const [nx, ny] = pts[i+1];
+            if ((x <= 1200 && nx > 1200) || (x > 1200 && nx <= 1200)) {
+                const t = (1200 - x) / (nx - x), iy = y + t * (ny - y);
+                leftPts.push([1200,      iy - 110]);
+                rightPts.push([0,        iy - 40]);
+            }
+        }
+    }
+    function poly(layer, pArr) {
+        if (pArr.length < 2) return;
+        const pl = document.createElementNS("http://www.w3.org/2000/svg","polyline");
+        pl.setAttribute("points", pArr.map(p=>p[0]+","+p[1]).join(" "));
+        pl.setAttribute("stroke", col); pl.setAttribute("stroke-width","5");
+        pl.setAttribute("fill","none"); pl.setAttribute("stroke-linecap","round");
+        pl.setAttribute("stroke-linejoin","round"); pl.setAttribute("opacity","0.85");
+        layer.appendChild(pl);
+    }
+    poly(layerL, leftPts);
+    poly(layerR, rightPts);
+}
+
+window.clearRoute = function() {
+    document.getElementById("route-layer-left").innerHTML  = "";
+    document.getElementById("route-layer-right").innerHTML = "";
+    Object.keys(inds).forEach(id => {
+        inds[id].setAttribute("stroke","#cc0000");
+        inds[id].setAttribute("stroke-width","4");
+    });
+};
+
+window.buildRoute = function(ids, color) {
+    window.clearRoute();
+    if (!ids || ids.length < 2) return;
+    const col = color || "#00ff55";
+    drawRoute(routePoints(ids), col);
+    ids.forEach(id => { if (inds[id]) inds[id].setAttribute("stroke","#aaff00"); });
+};
+
+window.addRoute = function(ids, color) {
+    if (!ids || ids.length < 2) return;
+    const col = color || "#00dd55";
+    drawRoute(routePoints(ids), col);
+    ids.forEach(id => { if (inds[id]) inds[id].setAttribute("stroke","#aaff00"); });
+};
+
+window.setSignal = function(id, state) {
+    const el = document.getElementById('sig-' + id);
+    if (!el) return;
+    el.setAttribute('fill', ['#ff2020','#ffcc00','#00cc44'][state] ?? '#ff2020');
+};
+
+window.highlightSwitch = function(id, on) {
+    if (!inds[id]) return;
+    inds[id].setAttribute("stroke", on ? "#aaff00" : "#cc0000");
+    inds[id].setAttribute("stroke-width", on ? "6" : "4");
+};
+
+const locked = new Set();
+window.lockSwitch = function(id, on) {
+    if (on) locked.add(id); else locked.delete(id);
+    const el = document.getElementById("n-"+id);
+    if (!el) return;
+    el.style.cursor = on ? "not-allowed" : "pointer";
+    el.setAttribute("stroke", on ? "#888888" : "#ff0000");
+};
+
+Object.keys(SW).forEach(id => {
+    const el = document.getElementById("n-" + id);
+    if (!el) return;
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+        if (_consistMode) { _lastConsistClick = id; return; }
+        if (locked.has(id)) return;
+        pos[id] ^= 1; applySwitch(id);
+    });
+});
+
+// ═══ Ползунок панорамирования ═══
+const viewport = document.getElementById("viewport");
+const strip = document.getElementById("strip");
+const slider = document.getElementById("slider");
+const hint = document.getElementById("hint");
+function maxPan() { return Math.max(0, strip.scrollWidth - viewport.clientWidth); }
+function apply() {
+    const frac = slider.value / 1000;
+    strip.style.transform = "translateX(" + (-frac * maxPan()) + "px)";
+    hint.textContent = maxPan() > 2 ? Math.round(frac * 100) + "%" : "вся схема видна";
+}
+slider.addEventListener("input", apply);
+window.addEventListener("resize", apply);
+
+let dragging = false, startX = 0, startVal = 0;
+viewport.addEventListener("pointerdown", (e) => { if (e.target.closest(".sw")) return; dragging = true; startX = e.clientX; startVal = +slider.value; viewport.setPointerCapture(e.pointerId); });
+viewport.addEventListener("pointermove", (e) => { if (!dragging) return; const mp = maxPan(); if (mp <= 0) return; const dv = ((startX - e.clientX) / mp) * 1000; slider.value = Math.min(1000, Math.max(0, startVal + dv)); apply(); });
+viewport.addEventListener("pointerup", () => { dragging = false; });
+viewport.addEventListener("pointercancel", () => { dragging = false; });
+viewport.addEventListener("wheel", (e) => { const mp = maxPan(); if (mp <= 0) return; const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY); if (delta === 0) return; e.preventDefault(); slider.value = Math.min(1000, Math.max(0, +slider.value + (delta / mp) * 1000)); apply(); }, { passive: false });
+
+window.addEventListener("load", () => setTimeout(apply, 60));
+setTimeout(apply, 300);
+</script>
+</body>
+</html>

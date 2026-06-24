@@ -1,0 +1,10 @@
+bin/ 
+obj/ 
+*.user 
+.claude/ 
+*.WebView2/ 
+bin/ 
+obj/ 
+*.user 
+.claude/ 
+*.WebView2/ 
