@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -36,6 +36,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         HomeUserName.Text = DispatcherName;
+        DrvUserName.Text  = DispatcherName;
 
         // Top-bar clock — starts immediately, fires every 500ms
         _topClockTimer = new System.Threading.Timer(_ =>
@@ -45,11 +46,22 @@ public partial class MainWindow : Window
             {
                 TopClockText.Text = now.ToString("HH:mm:ss");
                 TopDateText.Text  = now.ToString("dd.MM.yyyy");
+                DrvClockText.Text = now.ToString("HH:mm:ss");
+                DrvDateText.Text  = now.ToString("dd.MM.yyyy");
             });
         }, null, 0, 500);
 
         _dotChaser.Tick += ChaserTick;
         _dotChaser.Start();
+
+        // Disable Tab navigation everywhere in the app.
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Tab) e.Handled = true;
+        };
+
+        // Repaint stale edges after returning from another virtual desktop / re-activation.
+        Activated += (_, _) => ForceFullRedraw();
 
         Loaded += (_, _) => RunSplash();
         RomanianT9.InitAsync(); // start downloading word list in background
@@ -263,7 +275,8 @@ public partial class MainWindow : Window
         SolidColorBrush[][] allSets =
         [
             [Dot1Brush, Dot2Brush, Dot3Brush, Dot4Brush, Dot5Brush, Dot6Brush],
-            [MiniDot1Brush, MiniDot2Brush, MiniDot3Brush, MiniDot4Brush, MiniDot5Brush, MiniDot6Brush]
+            [MiniDot1Brush, MiniDot2Brush, MiniDot3Brush, MiniDot4Brush, MiniDot5Brush, MiniDot6Brush],
+            [DrvDot1Brush, DrvDot2Brush, DrvDot3Brush, DrvDot4Brush, DrvDot5Brush, DrvDot6Brush]
         ];
 
         foreach (var brushes in allSets)
@@ -300,4 +313,150 @@ public partial class MainWindow : Window
         (byte)(a.B + (b.B - a.B) * t));
 
     private void ExitApp_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
+
+    // ──────────────────────────────────────────────
+    //  WINDOW CAPTION CONTROLS
+    // ──────────────────────────────────────────────
+
+    private void OnTitleBarDrag(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2) { OnMaxRestore_Click(sender, e); return; }
+        if (WindowState == WindowState.Maximized) return; // drag only when windowed
+        DragMove();
+    }
+
+    private void OnMinimize_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void OnMaxRestore_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        ApplyWindowStateUi();
+    }
+
+    private void ApplyWindowStateUi()
+    {
+        bool windowed = WindowState == WindowState.Normal;
+
+        // Glyph: "maximize" when windowed, "restore-down" when maximized.
+        MaxBtn.Content = ((char)(windowed ? 0xE922 : 0xE923)).ToString();
+        MaxBtn.ToolTip = windowed ? "Maximize" : "Restore down";
+
+        // Soft gray outline only when floating in a window over other apps.
+        WindowBorder.BorderThickness = new Thickness(windowed ? 1 : 0);
+
+        if (windowed)
+        {
+            // Proper custom chrome in windowed mode: no white non-client line,
+            // clean DWM (Alt-Tab) thumbnail, and working edge/grip resize.
+            System.Windows.Shell.WindowChrome.SetWindowChrome(this,
+                new System.Windows.Shell.WindowChrome
+                {
+                    CaptionHeight = 0,
+                    ResizeBorderThickness = new Thickness(6),
+                    GlassFrameThickness = new Thickness(0),
+                    CornerRadius = new CornerRadius(0),
+                    UseAeroCaptionButtons = false
+                });
+            ResizeMode = ResizeMode.CanResizeWithGrip;
+        }
+        else
+        {
+            // Borderless fullscreen: drop chrome and resizing → flush, no gaps.
+            System.Windows.Shell.WindowChrome.SetWindowChrome(this, null);
+            ResizeMode = ResizeMode.NoResize;
+        }
+    }
+
+    private void OnClose_Click(object sender, RoutedEventArgs e)
+        => Application.Current.Shutdown();
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        var src = (System.Windows.Interop.HwndSource)PresentationSource.FromVisual(this);
+        src?.AddHook(WindowProc);
+        ApplyWindowStateUi(); // starts maximized → set glyph/border now
+    }
+
+    private const int WM_GETMINMAXINFO = 0x0024;
+    private const int MONITOR_DEFAULTTONEAREST = 0x00000002;
+
+    private IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        // Pin the maximized window exactly to the monitor (0,0 + full size). Without
+        // this, maximizing after the window has had a resizable frame overflows ~8px
+        // off every edge and pushes the caption buttons into/past the corner.
+        if (msg == WM_GETMINMAXINFO)
+        {
+            IntPtr monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+            if (monitor != IntPtr.Zero)
+            {
+                var mi = new MONITORINFO { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<MONITORINFO>() };
+                if (GetMonitorInfo(monitor, ref mi))
+                {
+                    var mmi = System.Runtime.InteropServices.Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                    RECT area = mi.rcMonitor;
+                    mmi.ptMaxPosition.x = 0;
+                    mmi.ptMaxPosition.y = 0;
+                    mmi.ptMaxSize.x     = area.right - area.left;
+                    mmi.ptMaxSize.y     = area.bottom - area.top;
+                    System.Runtime.InteropServices.Marshal.StructureToPtr(mmi, lParam, true);
+                    handled = true;
+                }
+            }
+        }
+        return IntPtr.Zero;
+    }
+
+    // ── Force a full repaint (cures transparent edges after DWM/desktop switches) ──
+    private const uint RDW_INVALIDATE = 0x0001, RDW_ERASE = 0x0004,
+                       RDW_FRAME = 0x0400, RDW_ALLCHILDREN = 0x0080, RDW_UPDATENOW = 0x0100;
+
+    private void ForceFullRedraw()
+    {
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        if (hwnd != IntPtr.Zero)
+            RedrawWindow(hwnd, IntPtr.Zero, IntPtr.Zero,
+                RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, uint flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr handle, int flags);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct RECT { public int left, top, right, bottom; }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MONITORINFO
+    {
+        public int cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct POINT { public int x, y; }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MINMAXINFO
+    {
+        public POINT ptReserved;
+        public POINT ptMaxSize;
+        public POINT ptMaxPosition;
+        public POINT ptMinTrackSize;
+        public POINT ptMaxTrackSize;
+    }
 }

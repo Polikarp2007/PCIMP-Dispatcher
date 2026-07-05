@@ -15,6 +15,68 @@
     <Grid x:Name="RootGrid">
 
         <!-- ═══════════════════════════════════════════════════════ -->
+        <!--  WINDOW CAPTION CONTROLS (global, top-right)            -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- Soft gray outline — only shown in windowed (Normal) state -->
+        <Border x:Name="WindowBorder" Panel.ZIndex="100000" IsHitTestVisible="False"
+                BorderBrush="#B5B5B5" BorderThickness="0"/>
+
+        <Grid Panel.ZIndex="99999" VerticalAlignment="Top" Height="34">
+            <!-- Drag strip: move the window by dragging the very top edge -->
+            <Border x:Name="DragStrip" Background="Transparent"
+                    HorizontalAlignment="Stretch" Margin="0,0,150,0"
+                    MouseLeftButtonDown="OnTitleBarDrag"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                <StackPanel.Resources>
+                    <Style x:Key="CaptionBtn" TargetType="Button">
+                        <Setter Property="Width" Value="46"/>
+                        <Setter Property="Height" Value="34"/>
+                        <Setter Property="Foreground" Value="#444"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+                        <Setter Property="FontSize" Value="11"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bg" Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bg" Property="Background" Value="#E5E5E5"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource CaptionBtn}">
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Resources>
+
+                <Button x:Name="MinBtn" Style="{StaticResource CaptionBtn}" Content="&#xE921;"
+                        ToolTip="Свернуть" Click="OnMinimize_Click"/>
+                <Button x:Name="MaxBtn" Style="{StaticResource CaptionBtn}" Content="&#xE922;"
+                        ToolTip="Свернуть в окно" Click="OnMaxRestore_Click"/>
+                <Button x:Name="CloseBtn2" Content="&#xE8BB;"
+                        ToolTip="Закрыть" Click="OnClose_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource CloseBtn}"/>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
         <!--  PAGE 1 — SPLASH                                        -->
         <!-- ═══════════════════════════════════════════════════════ -->
         <Grid x:Name="SplashPage" Background="White" Panel.ZIndex="10">
@@ -57,6 +119,199 @@
             </StackPanel>
             <TextBlock Text="PC|MP Dispatch System" FontSize="11" Foreground="#CCCCCC"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,16"/>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!--  PAGE 1.5 — ROLE PICKER                                 -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid x:Name="RolePicker" Visibility="Collapsed" Panel.ZIndex="8"
+              MouseMove="OnRolePickerMouseMove">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#070E2E" Offset="0"/>
+                    <GradientStop Color="#0C1640" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Grid.Resources>
+                <Style x:Key="RolePlate" TargetType="Border">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="BorderThickness" Value="3"/>
+                    <Setter Property="CornerRadius" Value="4"/>
+                    <Setter Property="ClipToBounds" Value="True"/>
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <SkewTransform AngleX="-12"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="#3458e1"/>
+                            <Setter Property="BorderThickness" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
+
+            <!-- Soft white glow that trails the cursor, behind everything -->
+            <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                <Ellipse x:Name="CursorGlow" Width="760" Height="760">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#26FFFFFF" Offset="0"/>
+                            <GradientStop Color="#10FFFFFF" Offset="0.45"/>
+                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.RenderTransform>
+                        <TranslateTransform x:Name="GlowT" X="-1000" Y="-1000"/>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+            </Canvas>
+
+            <!-- Faint PC|MP watermarks — scattered & tilted; opacity is driven
+                 entirely from a single per-frame loop in code (OnGlowFrame). -->
+            <Grid IsHitTestVisible="False" ClipToBounds="True">
+                <Grid.Resources>
+                    <Style x:Key="Wmark" TargetType="TextBlock">
+                        <Setter Property="Text" Value="PC|MP"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontWeight" Value="Black"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Opacity" Value="0.06"/>
+                        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+                    </Style>
+                </Grid.Resources>
+
+                <TextBlock x:Name="Wm1" Style="{StaticResource Wmark}" FontSize="190"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="60,30,0,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-16"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm2" Style="{StaticResource Wmark}" FontSize="110"
+                           HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,120,90,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="11"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm3" Style="{StaticResource Wmark}" FontSize="150"
+                           HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,120,80">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-9"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm4" Style="{StaticResource Wmark}" FontSize="90"
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="120,0,0,70">
+                    <TextBlock.RenderTransform><RotateTransform Angle="14"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm5" Style="{StaticResource Wmark}" FontSize="70"
+                           HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-22"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm6" Style="{StaticResource Wmark}" FontSize="80"
+                           HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40">
+                    <TextBlock.RenderTransform><RotateTransform Angle="18"/></TextBlock.RenderTransform>
+                </TextBlock>
+            </Grid>
+
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                <TextBlock Text="CHOOSE WHO YOU'LL BE HERE"
+                           FontFamily="Segoe UI" FontWeight="Black" FontSize="40"
+                           Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"
+                           TextOptions.TextFormattingMode="Ideal"/>
+                <TextBlock FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="18"
+                           HorizontalAlignment="Center" Margin="0,0,0,40"
+                           TextOptions.TextFormattingMode="Ideal">
+                    <Run Text="Choose your role on " Foreground="#9aa3b5"/><Run Text="PC|MP" FontWeight="Black" Foreground="#3458e1"/><Run Text="!" Foreground="#9aa3b5"/>
+                </TextBlock>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- DISPATCHER — left of center -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource RolePlate}"
+                            Width="470" Height="300" Tag="Dispatcher"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="Assets/Dispatcher.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,28"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="DISPATCHER" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="38" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Control signals, switches and traffic"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- DRIVER — right of center -->
+                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource RolePlate}"
+                            Width="470" Height="300" Tag="Driver"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="Assets/Drivers.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,28"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="DRIVER" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="38" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Drive trains across the route"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- OBSERVATOR — centered below -->
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource RolePlate}"
+                            Width="560" Height="170" Tag="Observator" HorizontalAlignment="Center"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="Assets/Observator.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="OBSERVATOR" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="34" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Just connect and watch the network live"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock x:Name="RoleComingSoon" Text="" Visibility="Collapsed"
+                           FontFamily="Segoe UI" FontWeight="Bold" FontSize="15"
+                           Foreground="#3458e1" HorizontalAlignment="Center" Margin="0,32,0,0"/>
+            </StackPanel>
         </Grid>
 
         <!-- ═══════════════════════════════════════════════════════ -->
@@ -109,7 +364,8 @@
                             <TextBlock Text="13" FontSize="20" FontWeight="Black" Foreground="#3458e1"/>
                         </StackPanel>
                     </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="0,0,150,0">
                         <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                             <TextBlock Text="Welcome," FontSize="12" Foreground="#888888" HorizontalAlignment="Right"/>
                             <TextBlock x:Name="HomeUserName" Text="Polikarp"
@@ -119,18 +375,6 @@
                             <TextBlock Text="P" FontSize="20" FontWeight="Bold" Foreground="#3458e1"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <Button Width="38" Height="38" Margin="14,0,0,0"
-                                Style="{StaticResource ExitButton}"
-                                VerticalAlignment="Center" Click="ExitApp_Click" ToolTip="Exit">
-                            <Viewbox Width="22" Height="22">
-                                <Canvas Width="32" Height="32">
-                                    <Path Fill="#AAAAAA" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
-                                    <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                </Canvas>
-                            </Viewbox>
-                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -701,6 +945,1230 @@
         </Grid>
 
         <!-- ═══════════════════════════════════════════════════════ -->
+        <!--  PAGE 2-D — DRIVER (Home)  — same chrome, empty body    -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid x:Name="DriverPage" Background="White" Visibility="Collapsed" Panel.ZIndex="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="72"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+
+            <!-- ── Top bar (universal) ── -->
+            <Border Grid.Row="0" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Background="White">
+                <Grid Margin="28,0,28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0" Source="Assets/logo.png" Width="160" Height="42"
+                           VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"
+                           SnapsToDevicePixels="True"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                            <TextBlock x:Name="DrvClockText" Text="00:00:00"
+                                       FontSize="22" FontWeight="SemiBold" Foreground="#111111" FontFamily="Bahnschrift" HorizontalAlignment="Center"
+                                       TextOptions.TextFormattingMode="Display"
+                                       SnapsToDevicePixels="True"/>
+                            <TextBlock x:Name="DrvDateText" Text="01.06.2026"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="#555555" FontFamily="Bahnschrift SemiLight" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <Border Width="1" Height="36" Background="#EEEEEE" Margin="0,0,24,0"/>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="9" Height="9" Fill="#28A745" VerticalAlignment="Center">
+                                    <Ellipse.Effect>
+                                        <DropShadowEffect Color="#28A745" Opacity="0.8" BlurRadius="6" ShadowDepth="0"/>
+                                    </Ellipse.Effect>
+                                </Ellipse>
+                                <TextBlock Text="RO.sv-1" FontSize="14" FontWeight="Bold"
+                                           Foreground="#000000" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Active" FontSize="11" Foreground="#28A745" Margin="16,0,0,0"/>
+                        </StackPanel>
+                        <Border Width="1" Height="36" Background="#EEEEEE" Margin="0,0,24,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Active players" FontSize="11" Foreground="#888888"/>
+                            <TextBlock Text="13" FontSize="20" FontWeight="Black" Foreground="#3458e1"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="0,0,150,0">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                            <TextBlock Text="Welcome," FontSize="12" Foreground="#888888" HorizontalAlignment="Right"/>
+                            <TextBlock x:Name="DrvUserName" Text="Polikarp"
+                                       FontSize="16" FontWeight="Bold" Foreground="#000000" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                        <Border Width="44" Height="44" CornerRadius="6" Background="#E8EEFF" VerticalAlignment="Center">
+                            <TextBlock Text="P" FontSize="20" FontWeight="Bold" Foreground="#3458e1"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Main 2-column (50/50) — empty white for now ── -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Vertical separator -->
+                <Border Grid.Column="0" Width="1" Background="#F0F0F0"
+                        HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+
+                <!-- ═══ LEFT PANEL (route selection for the driver) ═══ -->
+                <Grid Grid.Column="0" Margin="28,24,28,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <TextBlock Text="Which route today, Driver?"
+                                   FontSize="26" FontWeight="Black" Foreground="#000000"
+                                   TextOptions.TextFormattingMode="Ideal"/>
+                        <TextBlock Text="Pick a route to start your shift"
+                                   FontSize="15" Foreground="#666666" Margin="0,5,0,0"
+                                   FontWeight="SemiBold"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <!-- "Available Routes" + divider -->
+                            <StackPanel HorizontalAlignment="Left" Margin="0,0,0,10">
+                                <TextBlock Text="Available Routes" FontSize="14" FontWeight="Bold"
+                                           Foreground="#222222" FontFamily="Segoe UI"/>
+                                <Border Height="1.5" Background="#BBBBBB" Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <!-- Number badge "1" -->
+                            <Grid HorizontalAlignment="Left" Margin="4,0,0,6"
+                                  Width="26" Height="26"
+                                  SnapsToDevicePixels="True" UseLayoutRounding="True">
+                                <Ellipse Width="26" Height="26" Fill="White"
+                                         Stroke="#111111" StrokeThickness="1.5"
+                                         SnapsToDevicePixels="True"/>
+                                <TextBlock Text="1" FontSize="13" FontWeight="Black"
+                                           Foreground="#111111"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Display"
+                                           SnapsToDevicePixels="True"/>
+                            </Grid>
+
+                            <!-- ── Route Card ── -->
+                            <Border x:Name="DrvRouteCardBorder"
+                                    BorderThickness="0" BorderBrush="Transparent"
+                                    CornerRadius="0" Cursor="Hand"
+                                    MouseLeftButtonUp="OnDrvRouteCardToggle">
+                                <Border Height="165" CornerRadius="10" ClipToBounds="True">
+                                    <Grid>
+                                        <Image Source="Assets/PMG3.png" Stretch="UniformToFill"/>
+                                        <Border Background="#D80a0f1e"/>
+                                        <Grid Margin="14,12,14,10">
+
+                                            <!-- TOP: badges -->
+                                            <Grid VerticalAlignment="Top">
+                                                <StackPanel Orientation="Horizontal"
+                                                            HorizontalAlignment="Left"
+                                                            VerticalAlignment="Center">
+                                                    <Border Background="#3458e1" CornerRadius="5"
+                                                            Padding="10,4" Margin="0,0,6,0">
+                                                        <TextBlock Text="Publisher: Poli&amp;Co Official"
+                                                                   FontSize="11" FontWeight="Bold"
+                                                                   Foreground="White"/>
+                                                    </Border>
+                                                    <Border Background="White" CornerRadius="5"
+                                                            Padding="8,4">
+                                                        <TextBlock Text="M200"
+                                                                   FontSize="11" FontWeight="Black"
+                                                                   Foreground="#3458e1"/>
+                                                    </Border>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                VerticalAlignment="Center"
+                                                                Margin="8,0,0,0">
+                                                        <Ellipse Width="8" Height="8" Fill="#28A745"
+                                                                 VerticalAlignment="Center">
+                                                            <Ellipse.Triggers>
+                                                                <EventTrigger RoutedEvent="Loaded">
+                                                                    <BeginStoryboard>
+                                                                        <Storyboard RepeatBehavior="Forever">
+                                                                            <DoubleAnimation
+                                                                                Storyboard.TargetProperty="Opacity"
+                                                                                From="1" To="0.15"
+                                                                                Duration="0:0:0.9"
+                                                                                AutoReverse="True"/>
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </EventTrigger>
+                                                            </Ellipse.Triggers>
+                                                        </Ellipse>
+                                                        <TextBlock Text=" RO.sv-1"
+                                                                   FontSize="11" FontWeight="SemiBold"
+                                                                   Foreground="#28A745"
+                                                                   VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Image Source="Assets/left icon.png"
+                                                       Width="52" Height="52"
+                                                       HorizontalAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            </Grid>
+
+                                            <!-- MIDDLE: Route name -->
+                                            <TextBlock Text="M200  Arad — Radna"
+                                                       FontSize="22" FontWeight="Black"
+                                                       Foreground="White" VerticalAlignment="Center"
+                                                       TextOptions.TextFormattingMode="Ideal"/>
+
+                                            <!-- BOTTOM: Station timeline -->
+                                            <Grid VerticalAlignment="Bottom">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="15"/>
+                                                    </Grid.RowDefinitions>
+                                                    <UniformGrid Grid.Row="0" Rows="1">
+                                                        <TextBlock Text="Arad" FontSize="10" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Glogovat" FontSize="10" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Ghioroc" FontSize="10" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Paulis hc." FontSize="10" Foreground="#AABBCC" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Paulis" FontSize="10" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="Radna" FontSize="10" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                                    </UniformGrid>
+                                                    <Grid Grid.Row="1">
+                                                        <Border Height="1.5" Background="White" Opacity="0.35"
+                                                                VerticalAlignment="Center" Margin="6,0,6,0"/>
+                                                        <UniformGrid Rows="1">
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot1Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot2Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot3Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                            <Ellipse Width="7" Height="7" Opacity="0.5" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot4Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot5Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Ellipse.Fill><SolidColorBrush x:Name="DrvDot6Brush" Color="#3458e1"/></Ellipse.Fill>
+                                                            </Ellipse>
+                                                        </UniformGrid>
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+
+                                        </Grid>
+
+                                        <Image Source="Assets/logo.png"
+                                               Width="80" Opacity="0.18"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Bottom"
+                                               Margin="0,0,12,8"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Grid>
+                                </Border>
+                            </Border>
+
+                            <!-- ── Card 2: Coming soon ── -->
+                            <Border x:Name="DrvComingSoonCard"
+                                    Height="70" CornerRadius="10" ClipToBounds="True"
+                                    Margin="0,10,0,0" Opacity="0.7">
+                                <Grid>
+                                    <Image Source="Assets/PMG4.png" Stretch="UniformToFill"/>
+                                    <Border Background="#D00a0f1e"/>
+                                    <Grid Margin="14,0,14,0">
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="More routes" FontSize="16"
+                                                       FontWeight="Black" Foreground="White"
+                                                       TextOptions.TextFormattingMode="Ideal"/>
+                                            <TextBlock Text="Coming soon..." FontSize="11"
+                                                       Foreground="#AACCEE" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <Border Background="#2a2d3e" CornerRadius="5"
+                                                Padding="8,3" HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="Soon" FontSize="10"
+                                                       FontWeight="Bold" Foreground="#888888"/>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <!-- ── Description panel (collapsed initially) ── DRV -->
+                            <Border x:Name="DrvRouteDescPanel" Visibility="Collapsed"
+                                    Margin="0,14,0,0">
+                                <StackPanel>
+                                    <!-- Description text -->
+                                    <StackPanel Margin="0,0,0,4">
+                                        <TextBlock Text="M200 Arad – Radna"
+                                                   FontSize="17" FontWeight="Black"
+                                                   Foreground="#3458e1" Margin="0,0,0,10"
+                                                   FontFamily="Segoe UI"
+                                                   TextOptions.TextFormattingMode="Ideal"/>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="#111111" LineHeight="22"
+                                                   FontFamily="Segoe UI" FontWeight="SemiBold">
+                                            <Run Text="Developed by "/>
+                                            <Run Text="Poli&amp;Co S.R.L." FontWeight="Black" Foreground="#070e2e"/>
+                                            <Run Text=" and released in March 2026, this route spans approximately 40 km. It is located in the Crișana region of Romania and forms part of the Pan-European Corridor IV, featuring a high-speed connection towards Hungary. Designed to perfection, it stands as the most technologically advanced and intelligent route ever created."/>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="#111111" LineHeight="22"
+                                                   FontFamily="Segoe UI" FontWeight="SemiBold"
+                                                   Margin="0,10,0,0">
+                                            <Run Text="The route is officially licensed, fully integrated, and configured for multiplayer "/>
+                                            <Run Text="(PC|MP)" FontWeight="Black" Foreground="#3458e1"/>
+                                            <Run Text=" by the "/>
+                                            <Run Text="PC|MP" FontWeight="Black" Foreground="#3458e1"/>
+                                            <Run Text=" developers in collaboration with the publisher, "/>
+                                            <Run Text="Poli&amp;Co." FontWeight="Black" Foreground="#070e2e"/>
+                                            <Run Text=" It is optimized for both dispatchers and train drivers within the "/>
+                                            <Run Text="PC|MP" FontWeight="Black" Foreground="#3458e1"/>
+                                            <Run Text=" environment."/>
+                                        </TextBlock>
+                                        <Border Height="1" Background="#DDDDDD" Margin="0,14,0,14"/>
+                                        <TextBlock Text="Key features:" FontSize="13"
+                                                   FontWeight="Black" Foreground="#3458e1"
+                                                   FontFamily="Segoe UI" Margin="0,0,0,8"/>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="#111111" LineHeight="22"
+                                                   FontFamily="Segoe UI" FontWeight="SemiBold"
+                                                   Margin="0,0,0,5">
+                                            <Run FontWeight="Black" Foreground="#000000" Text="Complete Signaling &amp; Switch Control:"/>
+                                            <Run Text=" Fully synchronized between all players in real-time."/>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="#111111" LineHeight="22"
+                                                   FontFamily="Segoe UI" FontWeight="SemiBold"
+                                                   Margin="0,0,0,5">
+                                            <Run FontWeight="Black" Foreground="#000000" Text="Integrated Communication:"/>
+                                            <Run Text=" Built-in voice and text chat to connect with all players."/>
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="#111111" LineHeight="22"
+                                                   FontFamily="Segoe UI" FontWeight="SemiBold">
+                                            <Run FontWeight="Black" Foreground="#000000" Text="Dedicated Dispatch Zones:"/>
+                                            <Run Text=" Custom-designed areas tailored for each dispatch post."/>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <!-- Station list (Radna → Arad) -->
+                                    <Border Height="1" Background="#DDDDDD" Margin="0,14,0,14"/>
+                                    <TextBlock Text="Stations" FontSize="15" FontWeight="Black"
+                                               Foreground="#111111" Margin="0,0,0,12"
+                                               FontFamily="Segoe UI"/>
+
+                                    <Grid>
+                                        <Border Width="2" Background="#CCCCCC"
+                                                HorizontalAlignment="Left" Margin="16,16,0,16"
+                                                VerticalAlignment="Stretch"/>
+                                        <StackPanel>
+
+                                            <!-- 1. Radna (Terminal Arrival) -->
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="20" Height="20"
+                                                         Fill="#CC1122" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Radna" FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Terminus · Arrival · Departure" FontSize="11" Foreground="#CC1122" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#CC1122"
+                                                              Data="F1 M12,15.985 L15.182,12.803 L14.121,11.743 L12.75,13.114 L12.75,5.25 L11.25,5.25 L11.25,13.114 L9.879,11.743 L8.818,12.803 Z M18,17.25 L18,18.75 L6,18.75 L6,17.25 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- 2. Paulis (Passing) -->
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="13" Height="13"
+                                                         Fill="#070e2e" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Paulis" FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Passing station" FontSize="11" Foreground="#070e2e" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#070e2e"
+                                                              Data="F1 M18,12.75 L18,11.25 L6,11.25 L6,12.75 Z M15.182,7.007 L12,10.189 L8.818,7.007 L9.879,5.947 L11.25,7.318 L11.25,2.25 L12.75,2.25 L12.75,7.318 L14.121,5.947 Z M8.818,16.993 L12,13.811 L15.182,16.993 L14.121,18.053 L12.75,16.682 L12.75,21.75 L11.25,21.75 L11.25,16.682 L9.879,18.053 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- 3. Paulis hc. (Passing) -->
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="13" Height="13"
+                                                         Fill="#070e2e" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Paulis hc." FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Passing station" FontSize="11" Foreground="#070e2e" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#070e2e"
+                                                              Data="F1 M18,12.75 L18,11.25 L6,11.25 L6,12.75 Z M15.182,7.007 L12,10.189 L8.818,7.007 L9.879,5.947 L11.25,7.318 L11.25,2.25 L12.75,2.25 L12.75,7.318 L14.121,5.947 Z M8.818,16.993 L12,13.811 L15.182,16.993 L14.121,18.053 L12.75,16.682 L12.75,21.75 L11.25,21.75 L11.25,16.682 L9.879,18.053 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- 4. Ghioroc (Passing) -->
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="13" Height="13"
+                                                         Fill="#070e2e" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Ghioroc" FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Passing station" FontSize="11" Foreground="#070e2e" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#070e2e"
+                                                              Data="F1 M18,12.75 L18,11.25 L6,11.25 L6,12.75 Z M15.182,7.007 L12,10.189 L8.818,7.007 L9.879,5.947 L11.25,7.318 L11.25,2.25 L12.75,2.25 L12.75,7.318 L14.121,5.947 Z M8.818,16.993 L12,13.811 L15.182,16.993 L14.121,18.053 L12.75,16.682 L12.75,21.75 L11.25,21.75 L11.25,16.682 L9.879,18.053 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- 5. Glogovat (Passing) -->
+                                            <Grid Margin="0,0,0,16">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="13" Height="13"
+                                                         Fill="#070e2e" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Glogovat" FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Passing station" FontSize="11" Foreground="#070e2e" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#070e2e"
+                                                              Data="F1 M18,12.75 L18,11.25 L6,11.25 L6,12.75 Z M15.182,7.007 L12,10.189 L8.818,7.007 L9.879,5.947 L11.25,7.318 L11.25,2.25 L12.75,2.25 L12.75,7.318 L14.121,5.947 Z M8.818,16.993 L12,13.811 L15.182,16.993 L14.121,18.053 L12.75,16.682 L12.75,21.75 L11.25,21.75 L11.25,16.682 L9.879,18.053 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                            <!-- 6. Arad (Terminal Departure) -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="34"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="24"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="20" Height="20"
+                                                         Fill="#CC1122" HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <TextBlock Text="Arad" FontSize="15" FontWeight="Bold" Foreground="#1a1a2e"/>
+                                                    <TextBlock Text="Terminus · Arrival · Departure" FontSize="11" Foreground="#CC1122" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <Viewbox Grid.Column="2" Width="22" Height="22" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#CC1122"
+                                                              Data="F1 M18,18.75 L18,17.25 L6,17.25 L6,18.75 Z M8.818,8.121 L12,4.939 L15.182,8.121 L14.121,9.182 L12.75,7.811 L12.75,15.675 L11.25,15.675 L11.25,7.811 L9.879,9.182 Z"/>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Grid>
+
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Go to set-up button (pinned bottom) -->
+                    <Button x:Name="DrvProceedBtn" Grid.Row="2"
+                            Visibility="Collapsed" Click="OnDrvProceedClick"
+                            HorizontalAlignment="Left"
+                            Margin="0,10,0,0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="DPBd" CornerRadius="8"
+                                        Background="#3458e1" Padding="18,10">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Go to set-up!" FontSize="13"
+                                                   FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text=" →" FontSize="13"
+                                                   Foreground="White" Opacity="0.7"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="DPBd" Property="Background" Value="#2040c0"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+
+                <!-- ═══ RIGHT PANEL (global news / updates / guide) ═══ -->
+                <Grid Grid.Column="1" Margin="32,24,28,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,4">
+                        <TextBlock FontSize="24" FontWeight="Black" Foreground="#000000"
+                                   FontFamily="Segoe UI"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="About All in "/>
+                            <Run Text="PC|MP" Foreground="#3458e1"/>
+                        </TextBlock>
+                        <TextBlock Text="News, updates and guides for dispatchers"
+                                   FontSize="13" Foreground="#666666"
+                                   FontFamily="Segoe UI" FontWeight="SemiBold"
+                                   Margin="0,4,0,0"/>
+                        <Border Height="1.5" Background="#BBBBBB" Margin="0,10,0,0"
+                                HorizontalAlignment="Left">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Width" Value="220"/>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden"
+                                  Margin="0,14,0,0">
+                        <StackPanel>
+
+                            <!-- NEWS section -->
+                            <StackPanel Margin="0,0,0,18">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Border Background="#3458e1" CornerRadius="4" Padding="8,3">
+                                        <TextBlock Text="NEWS" FontSize="10" FontWeight="Black"
+                                                   Foreground="White" FontFamily="Segoe UI"/>
+                                    </Border>
+                                    <TextBlock FontSize="15" FontWeight="Black"
+                                               Foreground="#000000" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI">
+                                        <Run Text="Last News "/>
+                                        <Run Text="PC|MP" Foreground="#3458e1"/>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#111111" LineHeight="22" FontFamily="Segoe UI">
+                                    <Run Text="Route M200 is now fully operational. New dispatcher training sessions available every weekend. Check your schedule."/>
+                                </TextBlock>
+                                <TextBlock Text="02.06.2026" FontSize="11" Foreground="#AAAAAA"
+                                           Margin="0,6,0,0" FontFamily="Segoe UI"/>
+                            </StackPanel>
+
+                            <Border Height="1" Background="#DDDDDD" Margin="0,0,0,18"/>
+
+                            <!-- UPDATES section -->
+                            <StackPanel Margin="0,0,0,18">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Border Background="#28A745" CornerRadius="4" Padding="8,3">
+                                        <TextBlock Text="UPDATE" FontSize="10" FontWeight="Black"
+                                                   Foreground="White" FontFamily="Segoe UI"/>
+                                    </Border>
+                                    <TextBlock Text="Updates Incoming" FontSize="15" FontWeight="Black"
+                                               Foreground="#000000" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#111111" LineHeight="22" FontFamily="Segoe UI">
+                                    <Run Text="Coming soon: real-time train tracking on the map, multi-dispatcher zones, and improved switch animations."/>
+                                </TextBlock>
+                                <TextBlock Text="Coming soon" FontSize="11" Foreground="#28A745"
+                                           Margin="0,6,0,0" FontWeight="Black" FontFamily="Segoe UI"/>
+                            </StackPanel>
+
+                            <Border Height="1" Background="#DDDDDD" Margin="0,0,0,18"/>
+
+                            <!-- GUIDE section -->
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <Border Background="#F5A623" CornerRadius="4" Padding="8,3">
+                                        <TextBlock Text="GUIDE" FontSize="10" FontWeight="Black"
+                                                   Foreground="White" FontFamily="Segoe UI"/>
+                                    </Border>
+                                    <TextBlock Text="Manuals &amp; Library" FontSize="15" FontWeight="Black"
+                                               Foreground="#000000" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#111111" LineHeight="22" FontFamily="Segoe UI">
+                                    <Run Text="New to "/>
+                                    <Run Text="PC|MP" Foreground="#3458e1" FontWeight="Black"/>
+                                    <Run Text=" dispatching? Read our beginner guides: how to control switches, signal rules, and radio communication protocols."/>
+                                </TextBlock>
+                                <TextBlock Text="For new players" FontSize="11" Foreground="#F5A623"
+                                           Margin="0,6,0,0" FontWeight="Black" FontFamily="Segoe UI"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+
+            <!-- ── Footer (universal) ── -->
+            <Border Grid.Row="2" BorderBrush="#F0F0F0" BorderThickness="0,1,0,0" Background="White">
+                <Grid Margin="28,0,28,0">
+                    <TextBlock Text="PC|MP Dispatch v1.0"
+                               FontSize="11" Foreground="#CCCCCC"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Made with love" FontSize="11" Foreground="#888888"/>
+                        <TextBlock Text=" ♥" FontSize="13" Foreground="#3458e1"
+                                   Margin="3,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!--  PAGE 2-D2 — DRIVER SET-UP (Step 1: schedule)          -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid x:Name="DrvSetupPage" Background="White" Visibility="Collapsed" Panel.ZIndex="5"
+              MouseMove="OnSetupStageHover">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="72"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+
+            <Grid.Resources>
+                <Style x:Key="FieldComboItem" TargetType="ComboBoxItem">
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Foreground" Value="#222222"/>
+                    <Setter Property="Padding" Value="12,8"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <Border x:Name="ib" Background="Transparent" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter TargetName="ib" Property="Background" Value="#EEF2FF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="FieldBox" TargetType="TextBox">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="Foreground" Value="#222222"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="CaretBrush" Value="#3458e1"/>
+                    <Setter Property="Padding" Value="10,0,10,0"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TextBox">
+                                <Border x:Name="bd" Background="White" BorderBrush="#DADFEA"
+                                        BorderThickness="1.5" CornerRadius="6">
+                                    <ScrollViewer x:Name="PART_ContentHost"
+                                                  Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="BorderBrush" Value="#B9C2D8"/>
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                        <Setter TargetName="bd" Property="BorderBrush" Value="#3458e1"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="FieldCombo" TargetType="ComboBox">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Foreground" Value="#222222"/>
+                    <Setter Property="ItemContainerStyle" Value="{StaticResource FieldComboItem}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBox">
+                                <Grid>
+                                    <ToggleButton Focusable="False" ClickMode="Press"
+                                                  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border x:Name="bd" Background="White" BorderBrush="#DADFEA"
+                                                        BorderThickness="1.5" CornerRadius="6">
+                                                    <Path HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                          Margin="0,0,12,0" Data="M0,0 L10,0 L5,6 Z" Fill="#9aa3b5"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#B9C2D8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+                                    <ContentPresenter IsHitTestVisible="False"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      Margin="11,0,26,0" VerticalAlignment="Center"
+                                                      HorizontalAlignment="Left"/>
+                                    <Popup x:Name="PART_Popup" Placement="Bottom"
+                                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                                           AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
+                                        <Border Background="White" BorderBrush="#DADFEA" BorderThickness="1.5"
+                                                CornerRadius="6" Margin="0,4,0,4"
+                                                MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                            <Border.Effect>
+                                                <DropShadowEffect Color="#000000" Opacity="0.12" BlurRadius="12" ShadowDepth="2"/>
+                                            </Border.Effect>
+                                            <ScrollViewer MaxHeight="260">
+                                                <StackPanel IsItemsHost="True" Margin="0,4,0,4"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="StepBtn" TargetType="Button">
+                    <Setter Property="Width" Value="34"/>
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Setter Property="FontSize" Value="16"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Foreground" Value="#3458e1"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="sb" Background="Transparent">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="sb" Property="Background" Value="#EEF2FF"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+
+                <Style x:Key="GreenCheck" TargetType="CheckBox">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="CheckBox">
+                                <StackPanel Orientation="Horizontal" Background="Transparent">
+                                    <Border x:Name="box" Width="20" Height="20" CornerRadius="3"
+                                            BorderBrush="#C8CDDA" BorderThickness="1.5" Background="White"
+                                            VerticalAlignment="Center">
+                                        <TextBlock x:Name="chk" Text="&#10003;" FontSize="13" FontWeight="Black"
+                                                   Foreground="#28A745" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" Visibility="Collapsed"/>
+                                    </Border>
+                                    <ContentPresenter VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                </StackPanel>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="box" Property="BorderBrush" Value="#28A745"/>
+                                    </Trigger>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="box" Property="BorderBrush" Value="#28A745"/>
+                                        <Setter TargetName="chk" Property="Visibility" Value="Visible"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Grid.Resources>
+
+            <!-- ── Top bar ── -->
+            <Border Grid.Row="0" BorderBrush="#F0F0F0" BorderThickness="0,0,0,1" Background="White">
+                <Grid Margin="28,0,28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0" Source="Assets/logo.png" Width="160" Height="42"
+                           VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"
+                           SnapsToDevicePixels="True"/>
+
+                    <!-- Stage labels centered over each half -->
+                    <Grid Grid.Column="0" Grid.ColumnSpan="3" IsHitTestVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="DrvStep1Num" Text="1" FontSize="13" FontWeight="Black" Foreground="White"
+                                       Width="24" Height="24" TextAlignment="Center" Padding="0,3,0,0"
+                                       Background="#3458e1"/>
+                            <TextBlock x:Name="DrvStep1Lbl" Text="Configuration Page" FontSize="14" FontWeight="Bold"
+                                       Foreground="#111111" VerticalAlignment="Center" Margin="9,0,0,0" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="DrvStep2Num" Text="2" FontSize="13" FontWeight="Black" Foreground="#BBBBBB"
+                                       Width="24" Height="24" TextAlignment="Center" Padding="0,3,0,0"
+                                       Background="#F0F0F0"/>
+                            <TextBlock x:Name="DrvStep2Lbl" Text="Consist Page" FontSize="14" FontWeight="Bold"
+                                       Foreground="#BBBBBB" VerticalAlignment="Center" Margin="9,0,0,0" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="0,0,150,0">
+                        <Button Padding="16,8" Click="OnDrvSetupBack_Click" Cursor="Hand"
+                                FocusVisualStyle="{x:Null}"
+                                UseLayoutRounding="True" SnapsToDevicePixels="True">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" BorderBrush="#3458e1" BorderThickness="1.5"
+                                            CornerRadius="0" Padding="{TemplateBinding Padding}" Background="#F0F4FF">
+                                        <TextBlock x:Name="Bt" Text="&#8592; Back" FontSize="13" FontWeight="Black"
+                                                   Foreground="#3458e1" FontFamily="Segoe UI"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#3458e1"/>
+                                            <Setter TargetName="Bt" Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Main 2-column (50/50) ── -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="1" Background="#F0F0F0"
+                        HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+
+                <!-- ═══ LEFT: schedule builder ═══ -->
+                <Grid Grid.Column="0" Margin="28,22,28,18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <TextBlock Text="Plan your run" FontSize="26" FontWeight="Black" Foreground="#000000"
+                                   TextOptions.TextFormattingMode="Ideal"/>
+                        <TextBlock Text="Build your plan for route M200 Arad - Radna" FontSize="15"
+                                   Foreground="#666666" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Steps 1-4 -->
+                    <StackPanel Grid.Row="1">
+
+                        <!-- 1. Train number -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="1." Foreground="#3458e1"/><Run Text="  Train number" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock Text="Pick the class and number of your train." FontSize="12.5"
+                                   Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <ComboBox x:Name="DrvTrainType" Style="{StaticResource FieldCombo}"
+                                      Width="88" Height="38" Margin="0,0,8,0">
+                                <ComboBoxItem Content="R"/>
+                                <ComboBoxItem Content="RE"/>
+                                <ComboBoxItem Content="IRN"/>
+                                <ComboBoxItem Content="IR"/>
+                                <ComboBoxItem Content="IC"/>
+                                <ComboBoxItem Content="RM"/>
+                            </ComboBox>
+                            <TextBox x:Name="DrvTrainNum" Style="{StaticResource FieldBox}"
+                                     Width="120" Height="38" FontSize="15" FontWeight="Bold"
+                                     MaxLength="6" PreviewTextInput="OnDigitsOnly"/>
+                        </StackPanel>
+
+                        <!-- 2. Direction -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="2." Foreground="#3458e1"/><Run Text="  Direction" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock Text="Choose where you'll travel from and to." FontSize="12.5"
+                                   Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <ComboBox x:Name="DrvDirection" Style="{StaticResource FieldCombo}"
+                                  Width="220" Height="38" HorizontalAlignment="Left" Margin="0,0,0,20"
+                                  SelectionChanged="OnDrvDirectionChanged">
+                            <ComboBoxItem Content="Radna &#8594; Arad"/>
+                            <ComboBoxItem Content="Arad &#8594; Radna"/>
+                        </ComboBox>
+
+                        <!-- 3. Departure platform -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="3." Foreground="#3458e1"/><Run Text="  Departure platform" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock x:Name="DrvPlatformDesc" Text="Choose the platform you'll depart from."
+                                   FontSize="12.5" Foreground="#999999" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <ComboBox x:Name="DrvPlatform" Style="{StaticResource FieldCombo}"
+                                  Width="220" Height="38" HorizontalAlignment="Left" Margin="0,0,0,20"/>
+
+                        <!-- 4. Departure time -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="4." Foreground="#3458e1"/><Run Text="  Departure time" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock Text="Set the approximate departure time from the first station." FontSize="12.5"
+                                   Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                            <TextBox x:Name="DrvHH" Style="{StaticResource FieldBox}" Width="60" Height="38"
+                                     FontSize="17" FontWeight="Bold" MaxLength="2" Text="13" Padding="0"
+                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"/>
+                            <TextBlock Text=":" FontSize="20" FontWeight="Black" Foreground="#111111"
+                                       VerticalAlignment="Center" Margin="8,0,8,0"/>
+                            <TextBox x:Name="DrvMM" Style="{StaticResource FieldBox}" Width="60" Height="38"
+                                     FontSize="17" FontWeight="Bold" MaxLength="2" Text="00" Padding="0"
+                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 5. Station stops (fills remaining height) -->
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                       TextOptions.TextFormattingMode="Ideal">
+                                <Run Text="5." Foreground="#3458e1"/><Run Text="  Station stops" Foreground="#111111"/>
+                            </TextBlock>
+                            <TextBlock Text="Set how long you'll stop at each station." FontSize="12.5"
+                                       Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                            <TextBlock TextWrapping="Wrap" FontSize="13" Margin="0,0,0,10" FontFamily="Segoe UI"
+                                       FontWeight="SemiBold">
+                                <Run Text="Stopping at every station is " Foreground="#888888"/><Run Text="mandatory" Foreground="#555555" FontWeight="Black"/><Run Text=" on " Foreground="#888888"/><Run Text="PC|MP" Foreground="#3458e1" FontWeight="Black"/><Run Text="." Foreground="#888888"/>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <Border Grid.Row="1" BorderBrush="#D5D9E2" BorderThickness="1" CornerRadius="0"
+                                Background="Transparent" Padding="18,12" Margin="0,0,0,0">
+                            <UniformGrid x:Name="DrvDwellPanel" Columns="1"/>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- ═══ RIGHT: consist configuration ═══ -->
+                <Grid Grid.Column="1" Margin="28,22,28,18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <TextBlock FontSize="26" FontWeight="Black" Foreground="#000000"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="Build your train" Foreground="#000000"/>
+                        </TextBlock>
+                        <TextBlock TextWrapping="Wrap" FontSize="15" Foreground="#666666" FontWeight="SemiBold"
+                                   Margin="0,5,0,0" FontFamily="Segoe UI">
+                            <Run Text="Set up the consist you'll be identified by on "/><Run Text="PC|MP" Foreground="#3458e1" FontWeight="Black"/><Run Text=" and to other players."/>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Steps 1-2 -->
+                    <StackPanel Grid.Row="1">
+
+                        <!-- 1. Locomotive -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="1." Foreground="#3458e1"/><Run Text="  Locomotive" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock Text="Choose the locomotive that heads your train." FontSize="12.5"
+                                   Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <ComboBox x:Name="DrvLocoCombo" Style="{StaticResource FieldCombo}"
+                                  Width="300" Height="38" HorizontalAlignment="Left" Margin="0,0,0,22"
+                                  SelectionChanged="OnConsistChanged">
+                            <ComboBoxItem Content="L-PC 013-EA-060 (PCIMP)"/>
+                        </ComboBox>
+
+                        <!-- 2. Wagons -->
+                        <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,0,0,3"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <Run Text="2." Foreground="#3458e1"/><Run Text="  Wagons" Foreground="#111111"/>
+                        </TextBlock>
+                        <TextBlock Text="Pick how many wagons (1–6) and their type." FontSize="12.5"
+                                   Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,10"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <!-- count stepper -->
+                            <Border BorderBrush="#D5D9E2" BorderThickness="1" CornerRadius="0"
+                                    Background="White" Height="38" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource StepBtn}" Content="&#8722;" Click="OnWagonMinus"/>
+                                    <Border Width="1" Background="#E6E9F1"/>
+                                    <TextBlock x:Name="DrvWagonCount" Text="3" Width="46" FontSize="16"
+                                               FontWeight="Bold" Foreground="#111111" TextAlignment="Center"
+                                               VerticalAlignment="Center" FontFamily="Segoe UI"/>
+                                    <Border Width="1" Background="#E6E9F1"/>
+                                    <Button Style="{StaticResource StepBtn}" Content="+" Click="OnWagonPlus"/>
+                                </StackPanel>
+                            </Border>
+                            <ComboBox x:Name="DrvWagonType" Style="{StaticResource FieldCombo}"
+                                      Width="300" Height="38" Margin="12,0,0,0" VerticalAlignment="Center"
+                                      SelectionChanged="OnConsistChanged">
+                                <ComboBoxItem Content="VGPC 080-PAS-098 (PCIMP)"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Consist preview + additional options -->
+                    <ScrollViewer Grid.Row="2" Margin="0,20,0,0" VerticalScrollBarVisibility="Hidden"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock Text="Your consist" FontSize="14" FontWeight="Bold" Foreground="#222222"
+                                           FontFamily="Segoe UI"/>
+                                <TextBlock x:Name="DrvConsistSummary" Text="" FontSize="12.5" Foreground="#999999"
+                                           FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Border BorderBrush="#D5D9E2" BorderThickness="1" CornerRadius="0"
+                                    Background="White" Height="96">
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                              Padding="16,0">
+                                    <StackPanel x:Name="DrvConsistStrip" Orientation="Horizontal"
+                                                VerticalAlignment="Center"/>
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- 3. Additional options -->
+                            <TextBlock FontSize="18" FontWeight="Black" FontFamily="Segoe UI" Margin="0,24,0,3"
+                                       TextOptions.TextFormattingMode="Ideal">
+                                <Run Text="3." Foreground="#3458e1"/><Run Text="  Additional options" Foreground="#111111"/>
+                            </TextBlock>
+                            <TextBlock Text="Toggle the extras you want for this run." FontSize="12.5"
+                                       Foreground="#999999" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="0,0,0,14"/>
+
+                            <CheckBox x:Name="DrvOptRadio" Style="{StaticResource GreenCheck}" Margin="0,0,0,4">
+                                <TextBlock Text="I speak on the radio" FontSize="14" FontWeight="Bold"
+                                           Foreground="#1a1a2e" FontFamily="Segoe UI"/>
+                            </CheckBox>
+                            <TextBlock TextWrapping="Wrap" FontSize="12.5" Foreground="#999999" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="30,0,0,16"
+                                       Text="Enables live voice comms when a dispatcher is on the route — they may call you and talk over the intercom."/>
+
+                            <CheckBox x:Name="DrvOptTextOnly" Style="{StaticResource GreenCheck}" Margin="0,0,0,4">
+                                <TextBlock Text="I'm text-chat only" FontSize="14" FontWeight="Bold"
+                                           Foreground="#1a1a2e" FontFamily="Segoe UI"/>
+                            </CheckBox>
+                            <TextBlock TextWrapping="Wrap" FontSize="12.5" Foreground="#999999" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="30,0,0,16">
+                                <Run Text="With a dispatcher present you'll communicate only via text — they'll send commands and info to your "/><Run Text="PC|MP" Foreground="#3458e1" FontWeight="Black"/><Run Text=" HUD chat."/>
+                            </TextBlock>
+
+                            <CheckBox x:Name="DrvOptPriority" Style="{StaticResource GreenCheck}" Margin="0,0,0,4">
+                                <TextBlock Text="I need priority departure" FontSize="14" FontWeight="Bold"
+                                           Foreground="#1a1a2e" FontFamily="Segoe UI"/>
+                            </CheckBox>
+                            <TextBlock TextWrapping="Wrap" FontSize="12.5" Foreground="#999999" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="30,0,0,8"
+                                       Text="Helps when the session is full but you want to leave ASAP — the server or dispatcher will clear you to depart as soon as possible. It won't always help much; enable it if you're in a hurry (work, study) and just want to get going quickly :)"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Go to Final Page -->
+                    <Button Grid.Row="3" Click="OnDrvGoFinal" HorizontalAlignment="Right" Cursor="Hand"
+                            FocusVisualStyle="{x:Null}" Margin="0,16,0,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="FBd" CornerRadius="8" Background="#3458e1" Padding="22,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Go to Final Page" FontSize="14" FontWeight="Bold"
+                                                   Foreground="White" FontFamily="Segoe UI"/>
+                                        <TextBlock Text=" &#8594;" FontSize="14" Foreground="White" Opacity="0.7"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="FBd" Property="Background" Value="#2040c0"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <!-- ── Footer ── -->
+            <Border Grid.Row="2" BorderBrush="#F0F0F0" BorderThickness="0,1,0,0" Background="White">
+                <Grid Margin="28,0,28,0">
+                    <TextBlock Text="PC|MP Dispatch v1.0" FontSize="11" Foreground="#CCCCCC"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="Made with love" FontSize="11" Foreground="#888888"/>
+                        <TextBlock Text=" &#9829;" FontSize="13" Foreground="#3458e1" Margin="3,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!--  PAGE 2-D3 — DRIVER FINAL (run sheet)                   -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <Grid x:Name="DrvFinalPage" Background="#ECEEF2" Visibility="Collapsed" Panel.ZIndex="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top bar -->
+            <Border Grid.Row="0" Background="White" BorderBrush="#E5E5E5" BorderThickness="0,0,0,1">
+                <Grid Margin="28,0,28,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0" Source="Assets/logo.png" Width="150" Height="40"
+                           VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality"
+                           SnapsToDevicePixels="True"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="3" FontSize="13" FontWeight="Black" Foreground="White"
+                                   Width="24" Height="24" TextAlignment="Center" Padding="0,3,0,0"
+                                   Background="#3458e1"/>
+                        <TextBlock Text="Final Page" FontSize="14" FontWeight="Bold" Foreground="#111111"
+                                   VerticalAlignment="Center" Margin="9,0,0,0" FontFamily="Segoe UI"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="0,0,150,0">
+                        <Button Padding="16,8" Click="OnDrvFinalBack_Click" Cursor="Hand"
+                                FocusVisualStyle="{x:Null}" UseLayoutRounding="True" SnapsToDevicePixels="True">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" BorderBrush="#3458e1" BorderThickness="1.5"
+                                            CornerRadius="0" Padding="{TemplateBinding Padding}" Background="#F0F4FF">
+                                        <TextBlock x:Name="Bt" Text="&#8592; Back" FontSize="13" FontWeight="Black"
+                                                   Foreground="#3458e1" FontFamily="Segoe UI"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#3458e1"/>
+                                            <Setter TargetName="Bt" Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Document -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel HorizontalAlignment="Center" Margin="0,26,0,44">
+                    <!-- A4 sheet -->
+                    <Border Width="840" Background="White" BorderBrush="#DDDDDD" BorderThickness="1"
+                            Padding="64,52,64,42">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" Opacity="0.14" BlurRadius="22" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <StackPanel x:Name="DrvSheetContent"/>
+
+                            <!-- Connect button (+ exit) — sits above the approval divider -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+                                <Border x:Name="DrvConnectBtn" Background="#111111" Cursor="Hand" Padding="26,12"
+                                        MouseLeftButtonUp="OnConnectClick">
+                                    <TextBlock x:Name="DrvConnectText" Text="Connect to PC|MP" FontSize="14"
+                                               FontWeight="Bold" Foreground="White" FontFamily="Segoe UI"/>
+                                </Border>
+                                <Border x:Name="DrvExitBtn" Visibility="Collapsed" Background="#CC1122" Cursor="Hand"
+                                        Padding="13,11" Margin="10,0,0,0" MouseLeftButtonUp="OnDisconnectClick"
+                                        ToolTip="Disconnect">
+                                    <Viewbox Width="20" Height="20">
+                                        <Canvas Width="32" Height="32">
+                                            <Path Fill="White" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
+                                            <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                            <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                            <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </Border>
+                            </StackPanel>
+
+                            <Border Height="1" Background="#DDDDDD" Margin="0,18,0,8"/>
+                            <TextBlock Text="Approved by PC|MP." FontSize="12" FontWeight="Bold"
+                                       Foreground="#AAAAAA" HorizontalAlignment="Left" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
         <!--  PAGE 3 — DISPATCHERS CONFIG                            -->
         <!-- ═══════════════════════════════════════════════════════ -->
         <Grid x:Name="StationPage" Background="White" Visibility="Collapsed" Panel.ZIndex="5">
@@ -716,11 +2184,11 @@
                     <Image Source="Assets/logo.png" Width="160" Height="42"
                            HorizontalAlignment="Left" VerticalAlignment="Center"
                            RenderOptions.BitmapScalingMode="HighQuality" SnapsToDevicePixels="True"/>
-                    <!-- Back + Exit right -->
+                    <!-- Back -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                                VerticalAlignment="Center">
+                                VerticalAlignment="Center" Margin="0,0,150,0">
                         <Button Padding="16,8" Click="OnStationBack_Click"
-                                Cursor="Hand" Margin="0,0,10,0"
+                                Cursor="Hand"
                                 UseLayoutRounding="True" SnapsToDevicePixels="True">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -743,18 +2211,6 @@
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
-                        </Button>
-                        <Button Width="38" Height="38"
-                                Style="{StaticResource ExitButton}"
-                                VerticalAlignment="Center" Click="ExitApp_Click" ToolTip="Exit">
-                            <Viewbox Width="22" Height="22">
-                                <Canvas Width="32" Height="32">
-                                    <Path Fill="#AAAAAA" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
-                                    <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                </Canvas>
-                            </Viewbox>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -1096,10 +2552,11 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- ── RIGHT: Disconnect + Exit ── -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- ── RIGHT: Disconnect ── -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                    Margin="0,0,150,0">
                             <Button Padding="16,8" Click="OnDisconnect_Click"
-                                    Cursor="Hand" Margin="0,0,10,0"
+                                    Cursor="Hand"
                                     UseLayoutRounding="True" SnapsToDevicePixels="True">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
@@ -1120,18 +2577,6 @@
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Button.Template>
-                            </Button>
-                            <Button Width="38" Height="38"
-                                    Style="{StaticResource ExitButton}"
-                                    VerticalAlignment="Center" Click="ExitApp_Click" ToolTip="Exit">
-                                <Viewbox Width="22" Height="22">
-                                    <Canvas Width="32" Height="32">
-                                        <Path Fill="#AAAAAA" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
-                                        <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="#AAAAAA" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    </Canvas>
-                                </Viewbox>
                             </Button>
                         </StackPanel>
                     </Grid>
