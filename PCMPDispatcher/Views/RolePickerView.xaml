@@ -1,0 +1,192 @@
+﻿<UserControl x:Class="PCMPDispatcher.RolePickerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        <Grid x:Name="Root" MouseMove="OnRolePickerMouseMove">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#070E2E" Offset="0"/>
+                    <GradientStop Color="#0C1640" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Grid.Resources>
+                <Style x:Key="RolePlate" TargetType="Border">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="BorderThickness" Value="3"/>
+                    <Setter Property="CornerRadius" Value="4"/>
+                    <Setter Property="ClipToBounds" Value="True"/>
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <SkewTransform AngleX="-12"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="#3458e1"/>
+                            <Setter Property="BorderThickness" Value="5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
+
+            <!-- Soft white glow that trails the cursor, behind everything -->
+            <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                <Ellipse x:Name="CursorGlow" Width="760" Height="760">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#26FFFFFF" Offset="0"/>
+                            <GradientStop Color="#10FFFFFF" Offset="0.45"/>
+                            <GradientStop Color="#00FFFFFF" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.RenderTransform>
+                        <TranslateTransform x:Name="GlowT" X="-1000" Y="-1000"/>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+            </Canvas>
+
+            <!-- Faint PC|MP watermarks — scattered & tilted; opacity is driven
+                 entirely from a single per-frame loop in code (OnGlowFrame). -->
+            <Grid IsHitTestVisible="False" ClipToBounds="True">
+                <Grid.Resources>
+                    <Style x:Key="Wmark" TargetType="TextBlock">
+                        <Setter Property="Text" Value="PC|MP"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="FontWeight" Value="Black"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Opacity" Value="0.06"/>
+                        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+                    </Style>
+                </Grid.Resources>
+
+                <TextBlock x:Name="Wm1" Style="{StaticResource Wmark}" FontSize="190"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="60,30,0,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-16"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm2" Style="{StaticResource Wmark}" FontSize="110"
+                           HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,120,90,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="11"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm3" Style="{StaticResource Wmark}" FontSize="150"
+                           HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,120,80">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-9"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm4" Style="{StaticResource Wmark}" FontSize="90"
+                           HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="120,0,0,70">
+                    <TextBlock.RenderTransform><RotateTransform Angle="14"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm5" Style="{StaticResource Wmark}" FontSize="70"
+                           HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0">
+                    <TextBlock.RenderTransform><RotateTransform Angle="-22"/></TextBlock.RenderTransform>
+                </TextBlock>
+
+                <TextBlock x:Name="Wm6" Style="{StaticResource Wmark}" FontSize="80"
+                           HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40">
+                    <TextBlock.RenderTransform><RotateTransform Angle="18"/></TextBlock.RenderTransform>
+                </TextBlock>
+            </Grid>
+
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                <TextBlock Text="CHOOSE WHO YOU'LL BE HERE"
+                           FontFamily="Segoe UI" FontWeight="Black" FontSize="40"
+                           Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"
+                           TextOptions.TextFormattingMode="Ideal"/>
+                <TextBlock FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="18"
+                           HorizontalAlignment="Center" Margin="0,0,0,40"
+                           TextOptions.TextFormattingMode="Ideal">
+                    <Run Text="Choose your role on " Foreground="#9aa3b5"/><Run Text="PC|MP" FontWeight="Black" Foreground="#3458e1"/><Run Text="!" Foreground="#9aa3b5"/>
+                </TextBlock>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="44"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- DISPATCHER — left of center -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource RolePlate}"
+                            Width="470" Height="300" Tag="Dispatcher"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="/Assets/Dispatcher.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,28"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="DISPATCHER" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="38" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Control signals, switches and traffic"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- DRIVER — right of center -->
+                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource RolePlate}"
+                            Width="470" Height="300" Tag="Driver"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="/Assets/Drivers.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,28"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="DRIVER" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="38" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Drive trains across the route"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- OBSERVATOR — centered below -->
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource RolePlate}"
+                            Width="560" Height="170" Tag="Observator" HorizontalAlignment="Center"
+                            MouseLeftButtonUp="OnRoleSelected">
+                        <Grid>
+                            <Image Source="/Assets/Observator.jpg" Stretch="UniformToFill"/>
+                            <Border Background="#A6000000"/>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        RenderTransformOrigin="0.5,0.5">
+                                <StackPanel.RenderTransform>
+                                    <SkewTransform AngleX="12"/>
+                                </StackPanel.RenderTransform>
+                                <TextBlock Text="OBSERVATOR" FontFamily="Segoe UI" FontWeight="Black"
+                                           FontSize="34" Foreground="White" HorizontalAlignment="Center"
+                                           TextOptions.TextFormattingMode="Ideal"/>
+                                <TextBlock Text="Just connect and watch the network live"
+                                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="14"
+                                           Foreground="#cfd6e4" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <TextBlock x:Name="RoleComingSoon" Text="" Visibility="Collapsed"
+                           FontFamily="Segoe UI" FontWeight="Bold" FontSize="15"
+                           Foreground="#3458e1" HorizontalAlignment="Center" Margin="0,32,0,0"/>
+            </StackPanel>
+        </Grid>
+</UserControl>

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -12,10 +11,9 @@ using System.Windows.Media.Imaging;
 
 namespace PCMPDispatcher;
 
-public partial class MainWindow
+public partial class DrvSetupView : UserControl
 {
-    // Canonical line order Radna → Arad and running times (minutes) between
-    // consecutive stations (kept for the schedule step that comes later).
+    // Canonical line order Radna → Arad and running times (minutes) between stations.
     private static readonly string[] _lineRA =
         { "Radna", "Paulis", "Paulis hc.", "Ghioroc", "Glogovat", "Arad" };
     private static readonly int[] _segRA = { 5, 3, 3, 9, 7 };
@@ -30,10 +28,19 @@ public partial class MainWindow
     private string[] _currentOrder = Array.Empty<string>();
     private int[] _currentSegs = Array.Empty<int>();
 
-    private void ShowDrvSetupPage()
-    {
-        SetCaptionLight(false);
+    /// <summary>Raised with a config snapshot when the user proceeds to the Final page.</summary>
+    public event Action<DriverRunConfig>? GoFinalRequested;
+    /// <summary>Raised when the user presses Back.</summary>
+    public event Action? BackRequested;
 
+    public DrvSetupView()
+    {
+        InitializeComponent();
+    }
+
+    /// <summary>Reset the form to sensible defaults and fade the page in.</summary>
+    public void Open()
+    {
         // Suggest departure = current PC time + 10 minutes.
         var suggested = DateTime.Now.AddMinutes(10);
         DrvHH.Text = suggested.ToString("HH");
@@ -44,28 +51,42 @@ public partial class MainWindow
 
         InitConsist();
 
-        DrvSetupPage.Visibility = Visibility.Visible;
-        DrvSetupPage.Opacity = 0;
-        DrvSetupPage.BeginAnimation(OpacityProperty,
-            new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
+        Visibility = Visibility.Visible;
+        Opacity = 0;
+        BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
     }
 
     private void OnDrvGoFinal(object sender, RoutedEventArgs e)
-    {
-        _ = NavigateTo(() =>
-        {
-            DrvSetupPage.Visibility = Visibility.Collapsed;
-            ShowDrvFinalPage();
-        });
-    }
+        => GoFinalRequested?.Invoke(CaptureRunConfig());
 
     private void OnDrvSetupBack_Click(object sender, RoutedEventArgs e)
+        => BackRequested?.Invoke();
+
+    // Snapshot all Set-Up selections into a self-contained config for the Final page.
+    private DriverRunConfig CaptureRunConfig()
     {
-        _ = NavigateTo(() =>
+        var dwell = new int[_currentOrder.Length];
+        for (int i = 0; i < _dwellBoxes.Count && i < dwell.Length; i++)
+            dwell[i] = ParseInt(_dwellBoxes[i]?.Text ?? "0");
+
+        return new DriverRunConfig
         {
-            DrvSetupPage.Visibility = Visibility.Collapsed;
-            ShowDriverPage();
-        });
+            TrainType   = (DrvTrainType.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",
+            TrainNumber = string.IsNullOrWhiteSpace(DrvTrainNum.Text) ? "—" : DrvTrainNum.Text,
+            Platform    = (DrvPlatform.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",
+            Loco        = (DrvLocoCombo.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",
+            WagonType   = (DrvWagonType.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",
+            Order       = (string[])_currentOrder.Clone(),
+            Segments    = (int[])_currentSegs.Clone(),
+            Dwell       = dwell,
+            DepartMinutes = Math.Clamp(ParseInt(DrvHH.Text), 0, 23) * 60 + Math.Clamp(ParseInt(DrvMM.Text), 0, 59),
+            WagonCount  = _wagonCount,
+            OptRadio    = DrvOptRadio.IsChecked == true,
+            OptTextOnly = DrvOptTextOnly.IsChecked == true,
+            OptPriority = DrvOptPriority.IsChecked == true,
+            LocoImg     = _locoImg,
+            WagonImg    = _wagonImg
+        };
     }
 
     private void OnDigitsOnly(object sender, TextCompositionEventArgs e)
@@ -73,7 +94,7 @@ public partial class MainWindow
 
     // Highlight the stage (1 = left half, 2 = right half) the cursor is over.
     private void OnSetupStageHover(object sender, MouseEventArgs e)
-        => SetActiveStage(e.GetPosition(DrvSetupPage).X < DrvSetupPage.ActualWidth / 2 ? 1 : 2);
+        => SetActiveStage(e.GetPosition(this).X < ActualWidth / 2 ? 1 : 2);
 
     private void SetActiveStage(int stage)
     {
@@ -129,7 +150,6 @@ public partial class MainWindow
         for (int i = 0; i < _currentOrder.Length; i++)
         {
             bool isOrigin = i == 0;
-            bool last = i == _currentOrder.Length - 1;
 
             var row = new Grid();
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
@@ -258,7 +278,7 @@ public partial class MainWindow
         return outer;
     }
 
-    // Same footprint as the stepper, showing a centered "– | –" (no stop set / origin).
+    // Same footprint as the stepper, showing a centered "– | –" (origin / no stop).
     private FrameworkElement BuildOriginPlaceholder()
     {
         var outer = new StackPanel
@@ -389,4 +409,7 @@ public partial class MainWindow
         VerticalAlignment = VerticalAlignment.Center,
         SnapsToDevicePixels = true
     };
+
+    private static SolidColorBrush Brush(string hex)
+        => new((Color)ColorConverter.ConvertFromString(hex));
 }

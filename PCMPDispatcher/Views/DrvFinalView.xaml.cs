@@ -4,35 +4,75 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 
 namespace PCMPDispatcher;
 
-public partial class MainWindow
+public partial class DrvFinalView : UserControl
 {
     private bool _connected;
+    private readonly System.Windows.Threading.DispatcherTimer _clock = new()
+    { Interval = TimeSpan.FromMilliseconds(500) };
+    private System.Windows.Threading.DispatcherTimer? _noticeTimer;
+
+    /// <summary>Raised when the user presses Back — the host handles navigation.</summary>
+    public event Action? BackRequested;
+
+    public DrvFinalView()
+    {
+        InitializeComponent();
+        _clock.Tick += (_, _) =>
+        {
+            var now = DateTime.Now;
+            FinalClockText.Text = now.ToString("HH:mm:ss");
+            FinalDateText.Text  = now.ToString("dd.MM.yyyy");
+        };
+    }
+
+    /// <summary>Build the run sheet from a config snapshot and fade the page in.</summary>
+    public void Open(DriverRunConfig cfg)
+    {
+        _connected = false;
+        UpdateConnectUi();
+        BuildFinalDocument(cfg);
+        _clock.Start();
+
+        Visibility = Visibility.Visible;
+        Opacity = 0;
+        BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
+    }
 
     private void OnDrvFinalBack_Click(object sender, RoutedEventArgs e)
     {
-        _ = NavigateTo(() =>
+        if (_connected)
         {
-            DrvFinalPage.Visibility = Visibility.Collapsed;
-            ShowDrvSetupPage();
-        });
+            ShowNotice("Disconnect from PC|MP first.");
+            return;
+        }
+        _clock.Stop();
+        BackRequested?.Invoke();
     }
 
-    private void ShowDrvFinalPage()
+    // Brief centered toast, e.g. when Back is blocked.
+    private void ShowNotice(string text)
     {
-        SetCaptionLight(false);
-        _connected = false;
-        UpdateConnectUi();
-        BuildFinalDocument();
+        FinalNoticeText.Text = text;
+        FinalNotice.Visibility = Visibility.Visible;
+        FinalNotice.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)));
 
-        DrvFinalPage.Visibility = Visibility.Visible;
-        DrvFinalPage.Opacity = 0;
-        DrvFinalPage.BeginAnimation(OpacityProperty,
-            new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
+        _noticeTimer?.Stop();
+        _noticeTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1.8) };
+        _noticeTimer.Tick += (_, _) =>
+        {
+            _noticeTimer?.Stop();
+            var fade = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(280));
+            fade.Completed += (_, _) => FinalNotice.Visibility = Visibility.Collapsed;
+            FinalNotice.BeginAnimation(OpacityProperty, fade);
+        };
+        _noticeTimer.Start();
     }
 
+    // ── Connect button state ──
     private void OnConnectClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (_connected) return;
@@ -68,19 +108,12 @@ public partial class MainWindow
     //  RUN SHEET DOCUMENT
     // ──────────────────────────────────────────────
 
-    private void BuildFinalDocument()
+    private void BuildFinalDocument(DriverRunConfig cfg)
     {
         var doc = DrvSheetContent;
         doc.Children.Clear();
 
-        string type = (DrvTrainType.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—";
-        string num  = string.IsNullOrWhiteSpace(DrvTrainNum.Text) ? "—" : DrvTrainNum.Text;
-        string trainId = $"{type} {num}";
-        string origin = _currentOrder.Length > 0 ? _currentOrder[0] : "—";
-        string dest   = _currentOrder.Length > 0 ? _currentOrder[^1] : "—";
-        string platform = (DrvPlatform.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—";
-        string loco  = (DrvLocoCombo.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—";
-        string wagon = (DrvWagonType.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—";
+        string trainId = $"{cfg.TrainType} {cfg.TrainNumber}";
 
         // ── Masthead ── (driver left · title center · issued date/time right)
         var head = new Grid { Margin = new Thickness(0, 0, 0, 16) };
@@ -91,7 +124,7 @@ public partial class MainWindow
             FontFamily = new FontFamily("Segoe UI"), FontSize = 12.5, TextWrapping = TextWrapping.Wrap
         };
         driver.Inlines.Add(new Run("Driver\n") { Foreground = Brush("#999999"), FontWeight = FontWeights.SemiBold });
-        driver.Inlines.Add(new Run("Polikarp Kravchenko") { Foreground = Brush("#222222"), FontWeight = FontWeights.Bold });
+        driver.Inlines.Add(new Run(cfg.DriverName) { Foreground = Brush("#222222"), FontWeight = FontWeights.Bold });
         head.Children.Add(driver);
 
         var issued = new TextBlock
@@ -134,16 +167,16 @@ public partial class MainWindow
         // ── 1. Schedule ──
         doc.Children.Add(Heading("1.", "Schedule"));
         doc.Children.Add(Para(
-            $"Timetable for train {trainId} on route M200, running from {origin} to {dest}.",
+            $"Timetable for train {trainId} on route M200, running from {cfg.Origin} to {cfg.Destination}.",
             14, "#333333", FontWeights.SemiBold, new Thickness(0, 0, 0, 14)));
 
-        doc.Children.Add(BuildScheduleTable(platform));
+        doc.Children.Add(BuildScheduleTable(cfg));
 
         // Schedule summary
-        int n = _currentOrder.Length;
-        int totalSeg = 0; foreach (var s in _currentSegs) totalSeg += s;
+        int n = cfg.Order.Length;
+        int totalSeg = 0; foreach (var s in cfg.Segments) totalSeg += s;
         int totalDwell = 0;
-        for (int i = 1; i < n - 1; i++) totalDwell += ParseInt(_dwellBoxes[i]?.Text ?? "0");
+        for (int i = 1; i < n - 1; i++) totalDwell += cfg.Dwell.Length > i ? cfg.Dwell[i] : 0;
         int total = totalSeg + totalDwell;
         int stops = Math.Max(0, n - 1);
         string totalStr = total >= 60 ? $"{total / 60} h {total % 60:D2} min" : $"{total} min";
@@ -163,7 +196,7 @@ public partial class MainWindow
         // ── 2. Consist ──
         doc.Children.Add(Heading("2.", "Consist"));
         doc.Children.Add(Para(
-            $"One locomotive {loco}, hauling {_wagonCount} × {wagon}.",
+            $"One locomotive {cfg.Loco}, hauling {cfg.WagonCount} × {cfg.WagonType}.",
             14, "#333333", FontWeights.SemiBold, new Thickness(0, 0, 0, 12)));
 
         var strip = new StackPanel
@@ -172,8 +205,8 @@ public partial class MainWindow
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        strip.Children.Add(SheetVehicle(_locoImg));
-        for (int i = 0; i < _wagonCount; i++) strip.Children.Add(SheetVehicle(_wagonImg));
+        if (cfg.LocoImg != null) strip.Children.Add(SheetVehicle(cfg.LocoImg));
+        for (int i = 0; i < cfg.WagonCount && cfg.WagonImg != null; i++) strip.Children.Add(SheetVehicle(cfg.WagonImg));
 
         doc.Children.Add(new Border
         {
@@ -192,9 +225,9 @@ public partial class MainWindow
         // ── 3. Additional options ──
         doc.Children.Add(Heading("3.", "Additional options"));
         bool any = false;
-        if (DrvOptRadio.IsChecked == true)    { doc.Children.Add(OptionLine("I speak on the radio")); any = true; }
-        if (DrvOptTextOnly.IsChecked == true) { doc.Children.Add(OptionLine("I'm text-chat only")); any = true; }
-        if (DrvOptPriority.IsChecked == true) { doc.Children.Add(OptionLine("I need priority departure")); any = true; }
+        if (cfg.OptRadio)    { doc.Children.Add(OptionLine("I speak on the radio")); any = true; }
+        if (cfg.OptTextOnly) { doc.Children.Add(OptionLine("I'm text-chat only")); any = true; }
+        if (cfg.OptPriority) { doc.Children.Add(OptionLine("I need priority departure")); any = true; }
         if (!any)
             doc.Children.Add(Para("No additional options selected.", 14, "#999999",
                 FontWeights.SemiBold, new Thickness(0, 0, 0, 4)));
@@ -227,7 +260,7 @@ public partial class MainWindow
     }
 
     // Classic sharp black-ruled table.
-    private UIElement BuildScheduleTable(string platform)
+    private UIElement BuildScheduleTable(DriverRunConfig cfg)
     {
         var table = new Grid();
         double[] widths = { -1, 130, 96, 82, 82, 70 }; // -1 = star
@@ -235,7 +268,7 @@ public partial class MainWindow
             table.ColumnDefinitions.Add(new ColumnDefinition
             { Width = w < 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(w) });
 
-        int rows = _currentOrder.Length + 1;
+        int rows = cfg.Order.Length + 1;
         for (int r = 0; r < rows; r++)
             table.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) });
 
@@ -243,33 +276,33 @@ public partial class MainWindow
         for (int c = 0; c < head.Length; c++)
             table.Children.Add(Cell(head[c], 0, c, header: true, left: c <= 1, mono: false));
 
-        int t = Math.Clamp(ParseInt(DrvHH.Text), 0, 23) * 60 + Math.Clamp(ParseInt(DrvMM.Text), 0, 59);
+        int t = cfg.DepartMinutes;
 
-        for (int i = 0; i < _currentOrder.Length; i++)
+        for (int i = 0; i < cfg.Order.Length; i++)
         {
             int r = i + 1;
-            bool origin = i == 0, terminus = i == _currentOrder.Length - 1;
+            bool origin = i == 0, terminus = i == cfg.Order.Length - 1;
             string typeStr = origin ? "Origin" : terminus ? "Terminus" : "Passing";
-            string plat = origin ? platform : "—";
+            string plat = origin ? cfg.Platform : "—";
             string arr, depart, stop;
 
             if (origin) { arr = "—"; depart = Fmt(t); stop = "—"; }
             else
             {
-                t += _currentSegs[i - 1];
+                t += cfg.Segments[i - 1];
                 arr = Fmt(t);
-                int d = ParseInt(_dwellBoxes[i]?.Text ?? "0");
+                int d = cfg.Dwell.Length > i ? cfg.Dwell[i] : 0;
                 stop = d + " min";
                 if (!terminus) { t += d; depart = Fmt(t); }
                 else depart = "—";
             }
 
-            table.Children.Add(Cell(_currentOrder[i], r, 0, false, left: true, mono: false, bold: true));
-            table.Children.Add(Cell(typeStr,          r, 1, false, left: true, mono: false));
-            table.Children.Add(Cell(plat,             r, 2, false, left: false, mono: false));
-            table.Children.Add(Cell(arr,              r, 3, false, left: false, mono: true));
-            table.Children.Add(Cell(depart,           r, 4, false, left: false, mono: true, accent: true));
-            table.Children.Add(Cell(stop,             r, 5, false, left: false, mono: false));
+            table.Children.Add(Cell(cfg.Order[i], r, 0, false, left: true, mono: false, bold: true));
+            table.Children.Add(Cell(typeStr,      r, 1, false, left: true, mono: false));
+            table.Children.Add(Cell(plat,         r, 2, false, left: false, mono: false));
+            table.Children.Add(Cell(arr,          r, 3, false, left: false, mono: true));
+            table.Children.Add(Cell(depart,       r, 4, false, left: false, mono: true, accent: true));
+            table.Children.Add(Cell(stop,         r, 5, false, left: false, mono: false));
         }
 
         return new Border
@@ -346,7 +379,7 @@ public partial class MainWindow
         return g;
     }
 
-    private static Image SheetVehicle(System.Windows.Media.Imaging.BitmapImage src) => new()
+    private static Image SheetVehicle(BitmapImage src) => new()
     {
         Source = src, Height = 60, Stretch = Stretch.Uniform,
         Margin = new Thickness(0, 0, -8, 0), VerticalAlignment = VerticalAlignment.Center,
@@ -380,4 +413,7 @@ public partial class MainWindow
         minutes = ((minutes % 1440) + 1440) % 1440;
         return $"{minutes / 60:D2}:{minutes % 60:D2}";
     }
+
+    private static SolidColorBrush Brush(string hex)
+        => new((Color)ColorConverter.ConvertFromString(hex));
 }

@@ -24,7 +24,7 @@ public record TrainInfo(
     List<TrainStop> Schedule
 );
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
     // ── Sample zone data (will come from server in future) ────────────
     private static readonly List<TrainInfo> ZoneTrains =

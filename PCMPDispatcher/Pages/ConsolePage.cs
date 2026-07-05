@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -17,8 +17,103 @@ using System.Windows.Threading;
 
 namespace PCMPDispatcher;
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
+    public event System.Action? DisconnectRequested;
+    private const string DispatcherName = "Polikarp";
+    private System.Threading.Timer? _consoleClockTimer;
+
+    public ConsoleView()
+    {
+        InitializeComponent();
+    }
+
+    private static SolidColorBrush Brush(string hex)
+        => new((Color)ColorConverter.ConvertFromString(hex));
+
+    public void PreloadStation(string station) => MapControl.FocusStation(station);
+
+    public void Open(string station)
+    {
+        ConsoleStationName.Text   = station.ToUpper();
+        ConsoleSubtitleText.Text  = $"{DispatcherName}.K.";
+        ConsoleTotalPlayers.Text  = "12";
+        ConsoleZoneStatLabel.Text = station;
+        ConsoleZonePlayers.Text   = "2";
+
+        MapControl.Visibility = Visibility.Visible;
+        Visibility = Visibility.Visible;
+        Opacity = 0;
+        BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(400)));
+
+        _consoleClockTimer?.Dispose();
+        var uiTimer = new DispatcherTimer(
+            TimeSpan.FromSeconds(1), DispatcherPriority.Render,
+            (_, _) =>
+            {
+                var now = DateTime.Now;
+                ConsoleClockText.Text = now.ToString("HH:mm:ss");
+                ConsoleDateText.Text  = now.ToString("dd.MM.yyyy");
+            }, Dispatcher);
+        uiTimer.Start();
+        _consoleClockTimer = new System.Threading.Timer(_ => { }, null,
+            System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+        ConsoleClockText.Tag = uiTimer;
+
+        _currentStation = station;
+        MapControl.SwitchToggledFromHtml    += OnHtmlSwitchToggled;
+        MapControl.SwitchSelectedForConsist += OnHtmlConsistSelected;
+        BuildSwitchesWidget();
+        BuildChatPanel(station);
+        BuildTrainsPanel(station);
+        BuildDispLogPanel(station);
+        AddChatMessage("System", $"Dispatcher connected to zone: {station}", "#28A745");
+    }
+
+    private void OnDisconnect_Click(object sender, RoutedEventArgs e)
+    {
+        (ConsoleClockText.Tag as DispatcherTimer)?.Stop();
+        ConsoleClockText.Tag = null;
+        _consoleClockTimer?.Dispose();
+        _consoleClockTimer = null;
+        _chatMessages = null; _chatScroll = null; _chatInput = null;
+        MapControl.SwitchToggledFromHtml    -= OnHtmlSwitchToggled;
+        MapControl.SwitchSelectedForConsist -= OnHtmlConsistSelected;
+        _consists.Clear(); _lockedSwitches.Clear();
+        RightPanel.Child    = null;
+        ChatContainer.Child = null;
+        TrainsContainer.Child = null;
+        _chatLog = null; _chatScroll2 = null; _chatInputBox = null;
+
+        MapControl.Visibility = Visibility.Collapsed;
+        Visibility = Visibility.Collapsed;
+        DisconnectRequested?.Invoke();
+    }
+
+    private Canvas? _overlayCanvas; // console floating-widget layer (legacy path)
+
+    private static BitmapImage? TryLoadBitmap(string path)
+    {
+        try
+        {
+            var uri = path.StartsWith("pack://", StringComparison.Ordinal)
+                ? new Uri(path, UriKind.Absolute)
+                : new Uri("pack://application:,,," + path, UriKind.Absolute);
+
+            var bmp = new BitmapImage();
+            bmp.BeginInit();
+            bmp.UriSource    = uri;
+            bmp.CacheOption  = BitmapCacheOption.OnLoad;
+            bmp.EndInit();
+            bmp.Freeze();
+            return bmp;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private readonly Dictionary<string, int>  _signalStatus = new();
     private readonly Dictionary<string, bool> _switchNormal = new();
 
@@ -776,4 +871,3 @@ public partial class MainWindow
         _chatScroll?.ScrollToEnd();
     }
 }
-

@@ -18,7 +18,7 @@ using System.Windows.Threading;
 
 namespace PCMPDispatcher;
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
     private class ConsistDef
     {

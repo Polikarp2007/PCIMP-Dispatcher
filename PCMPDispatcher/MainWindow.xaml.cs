@@ -21,38 +21,15 @@ public partial class MainWindow : Window
 {
     private const string DispatcherName = "Polikarp";
 
-    private readonly DispatcherTimer _dotChaser = new() { Interval = TimeSpan.FromMilliseconds(380) };
-    private int _chaserPos = 0;
 
     // High-priority clocks — use System.Threading.Timer so they fire from a background thread
     // and are dispatched at DispatcherPriority.Send (highest), bypassing all pending async work.
-    private System.Threading.Timer? _topClockTimer;
-    private System.Threading.Timer? _consoleClockTimer;
 
     private CancellationTokenSource? _navCts;
 
     public MainWindow()
     {
         InitializeComponent();
-
-        HomeUserName.Text = DispatcherName;
-        DrvUserName.Text  = DispatcherName;
-
-        // Top-bar clock — starts immediately, fires every 500ms
-        _topClockTimer = new System.Threading.Timer(_ =>
-        {
-            var now = DateTime.Now;
-            Dispatcher.BeginInvoke(DispatcherPriority.Send, () =>
-            {
-                TopClockText.Text = now.ToString("HH:mm:ss");
-                TopDateText.Text  = now.ToString("dd.MM.yyyy");
-                DrvClockText.Text = now.ToString("HH:mm:ss");
-                DrvDateText.Text  = now.ToString("dd.MM.yyyy");
-            });
-        }, null, 0, 500);
-
-        _dotChaser.Tick += ChaserTick;
-        _dotChaser.Start();
 
         // Disable Tab navigation everywhere in the app.
         PreviewKeyDown += (_, e) =>
@@ -63,7 +40,65 @@ public partial class MainWindow : Window
         // Repaint stale edges after returning from another virtual desktop / re-activation.
         Activated += (_, _) => ForceFullRedraw();
 
-        Loaded += (_, _) => RunSplash();
+        // Role picker (UserControl) → shell navigates to the chosen dashboard.
+        RolePickerView.RoleChosen += OnRoleChosen;
+
+        // Dispatcher home (UserControl) → proceed to station select.
+        DispatcherHomeView.GoStationRequested += () => _ = NavigateTo(() =>
+        {
+            DispatcherHomeView.Visibility = Visibility.Collapsed;
+            StationSelectView.Open();
+        });
+
+        // Station select (UserControl) → back to dashboard / connect to a zone.
+        StationSelectView.BackRequested += () => _ = NavigateTo(() =>
+        {
+            StationSelectView.Visibility = Visibility.Collapsed;
+            DispatcherHomeView.Open();
+        });
+        StationSelectView.ConnectRequested += ShowConnecting;
+
+        // Console (UserControl) → disconnect returns to the dispatcher dashboard.
+        ConsoleView.DisconnectRequested += () => _ = NavigateTo(
+            () => DispatcherHomeView.Open(), holdMs: 4000);
+
+        // Driver home (UserControl) → proceed to Set-Up.
+        DriverHomeView.GoSetupRequested += () => _ = NavigateTo(() =>
+        {
+            DriverHomeView.Visibility = Visibility.Collapsed;
+            SetCaptionLight(false);
+            DrvSetupView.Open();
+        });
+
+        // Driver Set-Up page (UserControl) → shell handles navigation.
+        DrvSetupView.GoFinalRequested += cfg => _ = NavigateTo(() =>
+        {
+            DrvSetupView.Visibility = Visibility.Collapsed;
+            SetCaptionLight(false);
+            DrvFinalView.Open(cfg);
+        });
+        DrvSetupView.BackRequested += () => _ = NavigateTo(() =>
+        {
+            DrvSetupView.Visibility = Visibility.Collapsed;
+            SetCaptionLight(false);
+            DriverHomeView.Open();
+        });
+
+        // Final page (UserControl) → back to Set-Up.
+        DrvFinalView.BackRequested += () => _ = NavigateTo(() =>
+        {
+            DrvFinalView.Visibility = Visibility.Collapsed;
+            SetCaptionLight(false);
+            DrvSetupView.Open();
+        });
+
+        // Splash intro → role picker.
+        SplashView.Finished += () => _ = NavigateTo(() =>
+        {
+            SplashView.Visibility = Visibility.Collapsed;
+            ShowRolePicker();
+        });
+        Loaded += (_, _) => SplashView.Start();
         RomanianT9.InitAsync(); // start downloading word list in background
     }
 
@@ -122,49 +157,10 @@ public partial class MainWindow : Window
     //  NAVIGATION
     // ──────────────────────────────────────────────
 
-    private bool _routeSelected = false;
-
-    private void OnRouteCardToggle(object sender, MouseButtonEventArgs e)
-    {
-        _routeSelected = !_routeSelected;
-        RouteDescPanel.Visibility  = _routeSelected ? Visibility.Visible   : Visibility.Collapsed;
-        ProceedBtn.Visibility      = _routeSelected ? Visibility.Visible   : Visibility.Collapsed;
-        ComingSoonCard.Visibility  = _routeSelected ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private void OnProceedClick(object sender, RoutedEventArgs e)
-    {
-        _ = NavigateTo(() =>
-        {
-            MainPage.Visibility    = Visibility.Collapsed;
-            LoadSetupPage();
-            StationPage.Visibility = Visibility.Visible;
-            StationPage.Opacity    = 1;
-        });
-    }
-
-    private void OnRouteCardClick(object sender, RoutedEventArgs e) => OnProceedClick(sender, e);
-
-    private void OnStationBack_Click(object sender, RoutedEventArgs e)
-    {
-        _ = NavigateTo(() =>
-        {
-            StationPage.Visibility = Visibility.Collapsed;
-            MainPage.Visibility = Visibility.Visible;
-            MainPage.Opacity = 1;
-        });
-    }
-
-    private void OnStationConnect_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button btn) return;
-        var station = btn.Tag?.ToString() ?? "Unknown";
-        ShowConnecting(station);
-    }
 
     private async void ShowConnecting(string station)
     {
-        MapControl.FocusStation(station); // start loading the correct panel during the animation
+        ConsoleView.PreloadStation(station); // preload the map panel during the animation
         ConnectingText.Text = $"Connecting to {station}…";
         ConnectingOverlay.Opacity = 0;
         ConnectingOverlay.Visibility = Visibility.Visible;
@@ -176,77 +172,8 @@ public partial class MainWindow : Window
         await Task.Delay(1700);
 
         ConnectingOverlay.Visibility = Visibility.Collapsed;
-        OpenConsole(station);
-    }
-
-    private void OpenConsole(string station)
-    {
-        ConsoleStationName.Text   = station.ToUpper();
-        ConsoleSubtitleText.Text  = $"{DispatcherName}.K.";
-        ConsoleTotalPlayers.Text  = "12";
-        ConsoleZoneStatLabel.Text = station;
-        ConsoleZonePlayers.Text   = "2";
-
-        StationPage.Visibility = Visibility.Collapsed;
-        ConsolePage.Visibility = Visibility.Visible;
-        ConsolePage.Opacity    = 0;
-        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(400));
-        ConsolePage.BeginAnimation(OpacityProperty, fadeIn);
-
-        // Console clock — DispatcherTimer runs natively on UI thread, no marshal overhead
-        _consoleClockTimer?.Dispose();
-        var uiTimer = new System.Windows.Threading.DispatcherTimer(
-            TimeSpan.FromSeconds(1),
-            DispatcherPriority.Render,
-            (_, _) =>
-            {
-                var now = DateTime.Now;
-                ConsoleClockText.Text = now.ToString("HH:mm:ss");
-                ConsoleDateText.Text  = now.ToString("dd.MM.yyyy");
-            },
-            Dispatcher);
-        uiTimer.Start();
-        // Wrap in IDisposable shim so existing _consoleClockTimer?.Dispose() still works
-        _consoleClockTimer = new System.Threading.Timer(_ => { }, null,
-            System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-        // Store stop action via tag — stop uiTimer on disconnect
-        ConsoleClockText.Tag = uiTimer;
-
-        _currentStation = station;
-        MapControl.SwitchToggledFromHtml   += OnHtmlSwitchToggled;
-        MapControl.SwitchSelectedForConsist += OnHtmlConsistSelected;
-        BuildSwitchesWidget();
-        BuildChatPanel(station);
-        BuildTrainsPanel(station);
-        BuildDispLogPanel(station);
-        AddChatMessage("System", $"Dispatcher connected to zone: {station}", "#28A745");
-    }
-
-    private void OnDisconnect_Click(object sender, RoutedEventArgs e)
-    {
-        (ConsoleClockText.Tag as System.Windows.Threading.DispatcherTimer)?.Stop();
-        ConsoleClockText.Tag = null;
-        _consoleClockTimer?.Dispose();
-        _consoleClockTimer = null;
-        _chatMessages = null; _chatScroll = null; _chatInput = null;
-        MapControl.SwitchToggledFromHtml   -= OnHtmlSwitchToggled;
-        MapControl.SwitchSelectedForConsist -= OnHtmlConsistSelected;
-        _consists.Clear(); _lockedSwitches.Clear();
-        RightPanel.Child    = null;
-        ChatContainer.Child = null;
-        TrainsContainer.Child = null;
-        _chatLog = null; _chatScroll2 = null; _chatInputBox = null;
-
-        // WebView2 и весь ConsolePage скрываем сразу — до анимации
-        MapControl.Visibility  = Visibility.Collapsed;
-        ConsolePage.Visibility = Visibility.Collapsed;
-
-        _ = NavigateTo(() =>
-        {
-            MainPage.Visibility   = Visibility.Visible;
-            MainPage.Opacity      = 1;
-            MapControl.Visibility = Visibility.Visible;
-        }, holdMs: 4000);
+        StationSelectView.Visibility = Visibility.Collapsed;
+        ConsoleView.Open(station);
     }
 
     // ──────────────────────────────────────────────
@@ -262,55 +189,6 @@ public partial class MainWindow : Window
         { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut } };
         el.BeginAnimation(FrameworkElement.WidthProperty, a);
     }
-
-    // ──────────────────────────────────────────────
-    //  CHASER ANIMATION (station dots on route card)
-    // ──────────────────────────────────────────────
-
-    private readonly Color _dotBlue  = (Color)ColorConverter.ConvertFromString("#3458e1");
-    private readonly Color _dotWhite = Colors.White;
-
-    private void ChaserTick(object? s, EventArgs e)
-    {
-        SolidColorBrush[][] allSets =
-        [
-            [Dot1Brush, Dot2Brush, Dot3Brush, Dot4Brush, Dot5Brush, Dot6Brush],
-            [MiniDot1Brush, MiniDot2Brush, MiniDot3Brush, MiniDot4Brush, MiniDot5Brush, MiniDot6Brush],
-            [DrvDot1Brush, DrvDot2Brush, DrvDot3Brush, DrvDot4Brush, DrvDot5Brush, DrvDot6Brush]
-        ];
-
-        foreach (var brushes in allSets)
-        {
-            for (int i = 0; i < brushes.Length; i++)
-            {
-                int dist = Math.Abs(i - _chaserPos);
-                if (dist > 3) dist = 6 - dist;
-
-                var target = dist switch
-                {
-                    0 => _dotWhite,
-                    1 => Lerp(_dotBlue, _dotWhite, 0.55),
-                    _ => _dotBlue
-                };
-
-                AnimateBrush(brushes[i], target);
-            }
-        }
-
-        _chaserPos = (_chaserPos + 1) % 6;
-    }
-
-    private static void AnimateBrush(SolidColorBrush brush, Color to)
-    {
-        var anim = new ColorAnimation(to, TimeSpan.FromMilliseconds(320))
-        { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut } };
-        brush.BeginAnimation(SolidColorBrush.ColorProperty, anim);
-    }
-
-    private static Color Lerp(Color a, Color b, double t) => Color.FromRgb(
-        (byte)(a.R + (b.R - a.R) * t),
-        (byte)(a.G + (b.G - a.G) * t),
-        (byte)(a.B + (b.B - a.B) * t));
 
     private void ExitApp_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
 

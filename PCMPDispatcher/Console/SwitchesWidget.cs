@@ -17,7 +17,7 @@ using System.Windows.Threading;
 
 namespace PCMPDispatcher;
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
     private readonly Dictionary<string, bool>      _paulisSwitches      = new();
     private readonly Dictionary<string, TextBlock> _switchStatusTbs     = new();

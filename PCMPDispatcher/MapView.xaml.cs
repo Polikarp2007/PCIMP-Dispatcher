@@ -19,6 +19,7 @@ public partial class MapView : UserControl
         { Interval = TimeSpan.FromMilliseconds(500) };
     private bool _polling = false;
     private string? _pendingMapPath = null;
+    private bool _wv2Started = false;
 
     public MapView()
     {
@@ -28,6 +29,11 @@ public partial class MapView : UserControl
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // Loaded can fire more than once (this control lives inside a UserControl that
+        // gets shown/hidden). WebView2 must be initialized exactly once.
+        if (_wv2Started) return;
+        _wv2Started = true;
+
         try
         {
             var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(
@@ -58,6 +64,7 @@ public partial class MapView : UserControl
         }
         catch
         {
+            _wv2Started = false; // allow a retry on the next Loaded
             WebMap.Visibility = Visibility.Collapsed;
             ErrorText.Visibility = Visibility.Visible;
         }

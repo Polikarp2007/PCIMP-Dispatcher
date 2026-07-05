@@ -16,7 +16,7 @@ public enum ChatMsgType
     Server       // red    — system alert
 }
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
     private StackPanel?   _chatLog;
     private ScrollViewer? _chatScroll2;

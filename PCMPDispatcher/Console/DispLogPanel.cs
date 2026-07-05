@@ -20,7 +20,7 @@ public enum DispLogType
     Info         // gray — general info
 }
 
-public partial class MainWindow
+public partial class ConsoleView : UserControl
 {
     private StackPanel?   _dispLog;
     private ScrollViewer? _dispLogScroll;
