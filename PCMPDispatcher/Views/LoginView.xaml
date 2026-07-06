@@ -1,0 +1,168 @@
+<UserControl x:Class="PCMPDispatcher.LoginView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+
+    <Grid ClipToBounds="True">
+
+        <!-- ── Full-screen background image ── -->
+        <Image Source="/Assets/glogovat font.png"
+               Stretch="UniformToFill"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+        <!-- Soft scrim so the card pops (whole image still visible) -->
+        <Border Background="#33070E2E"/>
+
+        <!-- ── Centered white card ── -->
+        <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="White" CornerRadius="10"
+                Width="440" Padding="52,48,52,44">
+            <Border.Effect>
+                <DropShadowEffect Color="#070E2E" BlurRadius="48" ShadowDepth="0" Opacity="0.35"/>
+            </Border.Effect>
+
+            <StackPanel>
+
+                <!-- Poli&Co logo -->
+                <Image Source="/Assets/logo.png" Width="180" Height="48"
+                       HorizontalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       SnapsToDevicePixels="True" Margin="0,0,0,36"/>
+
+              <!-- ══ SIGN-IN PANEL ══ -->
+              <StackPanel x:Name="SignInPanel">
+
+                <!-- heading -->
+                <TextBlock Text="Sign in to continue"
+                           FontFamily="Segoe UI" FontWeight="Black" FontSize="26"
+                           Foreground="#111111" HorizontalAlignment="Center"
+                           TextOptions.TextFormattingMode="Ideal" Margin="0,0,0,14"/>
+
+                <!-- description -->
+                <TextBlock FontFamily="Segoe UI" FontWeight="Normal" FontSize="14"
+                           Foreground="#6a7180" TextAlignment="Center" TextWrapping="Wrap"
+                           LineHeight="21" TextOptions.TextFormattingMode="Ideal"
+                           Margin="0,0,0,36">
+                    <Run Text="Sign in using the "/><Run Text="Poli&amp;Co" FontWeight="Black" Foreground="#070E2E"/><Run Text=" and "/><Run Text="PCIMP" FontWeight="Black" Foreground="#3458e1"/><Run Text=" ecosystem to unlock all features."/>
+                </TextBlock>
+
+                <!-- rectangular Login button — same structure/animation as the Back button -->
+                <Border x:Name="LoginBtn" Cursor="Hand"
+                        MouseLeftButtonUp="OnLoginClick"
+                        BorderBrush="#3458e1" BorderThickness="1.5"
+                        CornerRadius="0" Height="50"
+                        SnapsToDevicePixels="True" UseLayoutRounding="True">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="White"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#3458e1"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <TextBlock x:Name="BtnLabel" Text="Login via Poli&amp;Co"
+                                   FontFamily="Segoe UI" FontWeight="Black" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   TextOptions.TextFormattingMode="Ideal">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#3458e1"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=LoginBtn}" Value="True">
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Border x:Name="SpinnerWrap" Visibility="Collapsed"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="●  ●  ●" FontFamily="Segoe UI" FontSize="13"
+                                       Foreground="#3458e1" Opacity="0.75"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- status / error -->
+                <TextBlock x:Name="StatusText" Text=""
+                           FontFamily="Segoe UI" FontSize="12" Foreground="#8a90a0"
+                           HorizontalAlignment="Center" TextAlignment="Center"
+                           TextWrapping="Wrap" Margin="0,16,0,0"
+                           TextOptions.TextFormattingMode="Ideal"/>
+              </StackPanel>
+
+              <!-- ══ BAN PANEL (shown when the account is banned) ══ -->
+              <StackPanel x:Name="BanPanel" Visibility="Collapsed">
+
+                <!-- bright red lock badge -->
+                <Border Width="72" Height="72" CornerRadius="36"
+                        HorizontalAlignment="Center" Margin="0,4,0,22">
+                    <Border.Background>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#FF2A32" Offset="0"/>
+                            <GradientStop Color="#E00812" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Border.Background>
+                    <Border.Effect>
+                        <DropShadowEffect Color="#E00812" BlurRadius="26" ShadowDepth="0" Opacity="0.55"/>
+                    </Border.Effect>
+                    <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="32"
+                               Foreground="White" HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- title -->
+                <TextBlock Text="ACCOUNT SUSPENDED"
+                           FontFamily="Segoe UI" FontWeight="Black" FontSize="24"
+                           Foreground="#D80610" HorizontalAlignment="Center"
+                           TextOptions.TextFormattingMode="Ideal" Margin="0,0,0,16"/>
+
+                <!-- main line — day count from server -->
+                <TextBlock x:Name="BanMainText"
+                           FontFamily="Segoe UI" FontWeight="Bold" FontSize="15"
+                           Foreground="#1c2540" TextAlignment="Center" TextWrapping="Wrap"
+                           LineHeight="23" TextOptions.TextFormattingMode="Ideal"
+                           Margin="0,0,0,18"/>
+
+                <!-- divider -->
+                <Border Height="1" Background="#EEF1F6" Margin="20,0,20,18"/>
+
+                <!-- contact note -->
+                <TextBlock FontFamily="Segoe UI" FontWeight="Normal" FontSize="13"
+                           Foreground="#6a7180" TextAlignment="Center" TextWrapping="Wrap"
+                           LineHeight="20" TextOptions.TextFormattingMode="Ideal"
+                           Margin="0,0,0,4">
+                    <Run Text="If you believe this is a mistake or wish to appeal,"/>
+                    <LineBreak/>
+                    <Run Text="reach out to us at "/><Run Text="contact@poli-co.com" FontWeight="Black" Foreground="#3458e1"/>
+                </TextBlock>
+              </StackPanel>
+
+            </StackPanel>
+        </Border>
+
+        <!-- station label bottom-right -->
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                    Margin="0,0,40,32">
+            <TextBlock Text="GLOGOVAT STATION"
+                       FontFamily="Segoe UI" FontWeight="Black" FontSize="18"
+                       Foreground="#DDFFFFFF" HorizontalAlignment="Right"
+                       TextOptions.TextFormattingMode="Ideal"/>
+            <TextBlock Text="(Jud. Arad)"
+                       FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="11"
+                       Foreground="#66FFFFFF" HorizontalAlignment="Right" Margin="0,3,0,0"
+                       TextOptions.TextFormattingMode="Ideal"/>
+        </StackPanel>
+
+        <!-- version bottom-left -->
+        <TextBlock FontFamily="Segoe UI" FontSize="11"
+                   HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                   Margin="40,0,0,34"
+                   TextOptions.TextFormattingMode="Ideal">
+            <Run Text="PCIMP" FontWeight="Black" Foreground="#3458e1"/><Run Text=" Launcher V1.1" Foreground="#88FFFFFF"/>
+        </TextBlock>
+    </Grid>
+</UserControl>

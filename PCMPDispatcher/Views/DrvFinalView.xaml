@@ -20,7 +20,7 @@
                        SnapsToDevicePixels="True"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
                             VerticalAlignment="Center">
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,24,0" Width="114">
                         <TextBlock x:Name="FinalClockText" Text="00:00:00"
                                    FontSize="22" FontWeight="SemiBold" Foreground="#111111"
                                    FontFamily="Bahnschrift" HorizontalAlignment="Center"
@@ -84,26 +84,124 @@
                     <StackPanel>
                         <StackPanel x:Name="DrvSheetContent"/>
 
-                        <!-- Connect button (+ exit) — sits above the approval divider -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
-                            <Border x:Name="DrvConnectBtn" Background="#111111" Cursor="Hand" Padding="26,12"
-                                    MouseLeftButtonUp="OnConnectClick">
-                                <TextBlock x:Name="DrvConnectText" Text="Connect to PC|MP" FontSize="14"
-                                           FontWeight="Bold" Foreground="White" FontFamily="Segoe UI"/>
-                            </Border>
-                            <Border x:Name="DrvExitBtn" Visibility="Collapsed" Background="#CC1122" Cursor="Hand"
-                                    Padding="13,11" Margin="10,0,0,0" MouseLeftButtonUp="OnDisconnectClick"
-                                    ToolTip="Disconnect">
-                                <Viewbox Width="20" Height="20">
-                                    <Canvas Width="32" Height="32">
-                                        <Path Fill="White" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
-                                        <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                        <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                    </Canvas>
-                                </Viewbox>
-                            </Border>
-                        </StackPanel>
+                        <!-- Connect button row (gear left, connect right) -->
+                        <Grid Margin="0,24,0,0">
+                            <!-- LEFT: volume gear + label -->
+                            <Grid HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <Button x:Name="FinalVolumeGearBtn"
+                                            Width="38" Height="38"
+                                            FontFamily="Segoe MDL2 Assets" Content="&#xE713;"
+                                            FontSize="18" Foreground="#BBBBBB"
+                                            BorderThickness="0" Cursor="Hand"
+                                            ToolTip="Chat Volume"
+                                            Click="OnVolumeGearClick">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="GBg" Background="Transparent">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="GBg" Property="Background" Value="#F0F4FF"/>
+                                                        <Setter Property="Foreground" Value="#3458e1"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <TextBlock Text="Chat Volume" FontSize="10" Foreground="#AAAAAA"
+                                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <Popup x:Name="FinalVolumePopup"
+                                       PlacementTarget="{Binding ElementName=FinalVolumeGearBtn}"
+                                       Placement="Top" StaysOpen="False"
+                                       AllowsTransparency="True" VerticalOffset="-8">
+                                    <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1"
+                                            CornerRadius="0" Padding="16,12" Width="240">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="14" Opacity="0.13" ShadowDepth="3"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE713;"
+                                                           FontSize="13" Foreground="#3458e1" VerticalAlignment="Center"/>
+                                                <TextBlock Text=" Chat Volume" FontSize="12"
+                                                           FontWeight="Bold" Foreground="#222222"
+                                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                            </StackPanel>
+                                            <Slider x:Name="FinalVolumeSlider"
+                                                    Minimum="0" Maximum="100" Value="80"
+                                                    SmallChange="1" LargeChange="10" Height="18"
+                                                    ValueChanged="OnVolumeChanged">
+                                                <Slider.Template>
+                                                    <ControlTemplate TargetType="Slider">
+                                                        <Grid>
+                                                            <Track x:Name="PART_Track">
+                                                                <Track.DecreaseRepeatButton>
+                                                                    <RepeatButton Command="Slider.DecreaseLarge">
+                                                                        <RepeatButton.Template>
+                                                                            <ControlTemplate TargetType="RepeatButton">
+                                                                                <Border Height="3" Background="#3458e1" CornerRadius="0" VerticalAlignment="Center"/>
+                                                                            </ControlTemplate>
+                                                                        </RepeatButton.Template>
+                                                                    </RepeatButton>
+                                                                </Track.DecreaseRepeatButton>
+                                                                <Track.IncreaseRepeatButton>
+                                                                    <RepeatButton Command="Slider.IncreaseLarge">
+                                                                        <RepeatButton.Template>
+                                                                            <ControlTemplate TargetType="RepeatButton">
+                                                                                <Border Height="3" Background="#E0E0E0" CornerRadius="0" VerticalAlignment="Center"/>
+                                                                            </ControlTemplate>
+                                                                        </RepeatButton.Template>
+                                                                    </RepeatButton>
+                                                                </Track.IncreaseRepeatButton>
+                                                                <Track.Thumb>
+                                                                    <Thumb Width="11" Height="11" Cursor="Hand">
+                                                                        <Thumb.Template>
+                                                                            <ControlTemplate TargetType="Thumb">
+                                                                                <Ellipse Width="11" Height="11" Fill="#3458e1"/>
+                                                                            </ControlTemplate>
+                                                                        </Thumb.Template>
+                                                                    </Thumb>
+                                                                </Track.Thumb>
+                                                            </Track>
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Slider.Template>
+                                            </Slider>
+                                            <Grid Margin="0,6,0,0">
+                                                <TextBlock Text="0" FontSize="10" Foreground="#BBBBBB" HorizontalAlignment="Left"/>
+                                                <TextBlock x:Name="FinalVolumeLabel" Text="80%"
+                                                           FontSize="11" FontWeight="Bold" Foreground="#3458e1"
+                                                           HorizontalAlignment="Center"/>
+                                                <TextBlock Text="100" FontSize="10" Foreground="#BBBBBB" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                            <!-- RIGHT: connect + exit -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Border x:Name="DrvConnectBtn" Background="#111111" Cursor="Hand" Padding="26,12"
+                                        MouseLeftButtonUp="OnConnectClick">
+                                    <TextBlock x:Name="DrvConnectText" Text="Connect to PC|MP" FontSize="14"
+                                               FontWeight="Bold" Foreground="White" FontFamily="Segoe UI"/>
+                                </Border>
+                                <Border x:Name="DrvExitBtn" Visibility="Collapsed" Background="#CC1122" Cursor="Hand"
+                                        Padding="13,11" Margin="10,0,0,0" MouseLeftButtonUp="OnDisconnectClick"
+                                        ToolTip="Disconnect">
+                                    <Viewbox Width="20" Height="20">
+                                        <Canvas Width="32" Height="32">
+                                            <Path Fill="White" Data="M23.93,25 v3 h-16 V4 h16 V7 h2 V3 a1,1,0,0,0,-1,-1 h-18 a1,1,0,0,0,-1,1 V29 a1,1,0,0,0,1,1 h18 a1,1,0,0,0,1,-1 V25 Z"/>
+                                            <Line X1="15.92" Y1="16" X2="28.92" Y2="16" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                            <Line X1="28.92" Y1="16" X2="24.92" Y2="12" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                            <Line X1="28.92" Y1="16" X2="24.92" Y2="20" Stroke="White" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
 
                         <Border Height="1" Background="#DDDDDD" Margin="0,18,0,8"/>
                         <TextBlock Text="Approved by PC|MP." FontSize="12" FontWeight="Bold"

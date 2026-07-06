@@ -71,6 +71,7 @@ public partial class DrvSetupView : UserControl
 
         return new DriverRunConfig
         {
+            DriverName  = Services.UserSession.VisibleName,
             TrainType   = (DrvTrainType.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",
             TrainNumber = string.IsNullOrWhiteSpace(DrvTrainNum.Text) ? "—" : DrvTrainNum.Text,
             Platform    = (DrvPlatform.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—",

@@ -1,0 +1,168 @@
+<UserControl x:Class="PCMPDispatcher.SteamSetupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+
+    <Grid ClipToBounds="True">
+
+        <!-- Full-screen background image -->
+        <Image Source="/Assets/Dispatcher.jpg"
+               Stretch="UniformToFill"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+        <!-- Soft dark scrim -->
+        <Border Background="#44070E2E"/>
+
+        <!-- Centered white card -->
+        <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="White" CornerRadius="10"
+                Width="440" Padding="52,44,52,44">
+            <Border.Effect>
+                <DropShadowEffect Color="#070E2E" BlurRadius="48" ShadowDepth="0" Opacity="0.35"/>
+            </Border.Effect>
+
+            <StackPanel>
+
+                <!-- Logo -->
+                <Image Source="/Assets/logo.png" Width="180" Height="48"
+                       HorizontalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       SnapsToDevicePixels="True" Margin="0,0,0,28"/>
+
+                <!-- Heading -->
+                <TextBlock Text="Connect Steam account"
+                           FontFamily="Segoe UI" FontWeight="Black" FontSize="24"
+                           Foreground="#111111" HorizontalAlignment="Center"
+                           TextOptions.TextFormattingMode="Ideal" Margin="0,0,0,10"/>
+
+                <!-- Sub -->
+                <TextBlock Text="Your avatar and nickname will be loaded from your Steam profile"
+                           FontFamily="Segoe UI" FontWeight="Normal" FontSize="13"
+                           Foreground="#6a7180" TextAlignment="Center" TextWrapping="Wrap"
+                           LineHeight="20" TextOptions.TextFormattingMode="Ideal"
+                           Margin="0,0,0,28"/>
+
+                <!-- Input label -->
+                <TextBlock Text="Steam ID or profile URL"
+                           FontFamily="Segoe UI" FontWeight="SemiBold" FontSize="12"
+                           Foreground="#333333" Margin="0,0,0,6"/>
+
+                <!-- Input field -->
+                <TextBox x:Name="SteamInput"
+                         Padding="14,11" FontSize="13" FontFamily="Segoe UI"
+                         Foreground="#111111" Background="#F7F8FA"
+                         BorderBrush="#D8DCE6" BorderThickness="1"
+                         MinHeight="44" Margin="0,0,0,6"
+                         TextChanged="OnSteamInputChanged"/>
+
+                <!-- Hint -->
+                <TextBlock FontFamily="Segoe UI" FontSize="11" Foreground="#9aa0ad"
+                           TextWrapping="Wrap" Margin="0,0,0,16">
+                    Example: https://steamcommunity.com/profiles/76561198xxxxxxxxx or just 76561198xxxxxxxxx
+                </TextBlock>
+
+                <!-- Status / loading / preview area -->
+                <Border x:Name="StatusArea" Visibility="Collapsed"
+                        Margin="0,0,0,20">
+                    <StackPanel>
+                        <!-- Loading -->
+                        <StackPanel x:Name="LoadingRow" Visibility="Collapsed">
+                            <TextBlock Text="Loading Steam profile…" FontFamily="Segoe UI"
+                                       FontSize="12" Foreground="#6a7180"
+                                       HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <ProgressBar Height="3" Background="#EEF0F5"
+                                         Foreground="#3458e1" IsIndeterminate="True"/>
+                        </StackPanel>
+
+                        <!-- Profile preview card -->
+                        <Border x:Name="ProfileRow" Visibility="Collapsed"
+                                Background="#F7F8FA" BorderBrush="#D8DCE6"
+                                BorderThickness="1" Padding="14,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Avatar -->
+                                <Border Grid.Column="0" Width="52" Height="52"
+                                        CornerRadius="6" ClipToBounds="True" Margin="0,0,14,0">
+                                    <Image x:Name="PreviewAvatar" Stretch="UniformToFill"/>
+                                </Border>
+
+                                <!-- Name + status -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="PreviewNickname"
+                                               FontFamily="Segoe UI" FontWeight="Bold"
+                                               FontSize="15" Foreground="#111111"
+                                               Margin="0,0,0,3"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="7" Height="7" Fill="#28A745"
+                                                 VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Steam profile found"
+                                                   FontFamily="Segoe UI" FontSize="11"
+                                                   Foreground="#28A745"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Error -->
+                        <Border x:Name="ErrorRow" Visibility="Collapsed"
+                                Background="#FFF5F5" BorderBrush="#FCA5A5"
+                                BorderThickness="1" Padding="12,10">
+                            <TextBlock x:Name="ErrorText"
+                                       FontFamily="Segoe UI" FontSize="12"
+                                       Foreground="#DC2626" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Buttons -->
+                <Grid>
+                    <Button x:Name="SaveBtn" HorizontalAlignment="Right" Click="OnSaveClick"
+                            Padding="28,12"
+                            Background="#3458e1" Foreground="White" BorderThickness="0"
+                            FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                            Content="Connect Steam">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="#3458e1"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg" Background="{TemplateBinding Background}"
+                                                    CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#2845c8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bg" Property="Background" Value="#CBD5E1"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Station label bottom-right — same style as LoginView -->
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,40,32">
+            <TextBlock Text="ARAD STATION"
+                       FontFamily="Segoe UI" FontSize="13" FontWeight="Bold"
+                       Foreground="White" TextAlignment="Right" Opacity="0.85"/>
+            <TextBlock Text="(Jud. Arad)"
+                       FontFamily="Segoe UI" FontSize="11" FontWeight="Normal"
+                       Foreground="#CCCCCC" TextAlignment="Right" Opacity="0.7"/>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

@@ -19,7 +19,7 @@ public partial class DispatcherHomeView : UserControl
     public DispatcherHomeView()
     {
         InitializeComponent();
-        HomeUserName.Text = "Polikarp";
+        HomeUserName.Text = Services.UserSession.VisibleName;
 
         _clock.Tick += (_, _) =>
         {
@@ -35,6 +35,8 @@ public partial class DispatcherHomeView : UserControl
 
     public void Open()
     {
+        HomeUserName.Text = Services.UserSession.VisibleName;
+        Services.Avatars.Apply(HomeAvatarImg, HomeAvatarInitials);
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
@@ -51,4 +53,5 @@ public partial class DispatcherHomeView : UserControl
     private void OnProceedClick(object sender, RoutedEventArgs e) => GoStationRequested?.Invoke();
 
     private void OnRouteCardClick(object sender, RoutedEventArgs e) => OnProceedClick(sender, e);
+
 }

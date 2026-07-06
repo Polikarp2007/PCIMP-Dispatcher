@@ -19,7 +19,7 @@ public partial class DriverHomeView : UserControl
     public DriverHomeView()
     {
         InitializeComponent();
-        DrvUserName.Text = "Polikarp";
+        DrvUserName.Text = Services.UserSession.VisibleName;
 
         _clock.Tick += (_, _) =>
         {
@@ -36,6 +36,8 @@ public partial class DriverHomeView : UserControl
 
     public void Open()
     {
+        DrvUserName.Text = Services.UserSession.VisibleName;
+        Services.Avatars.Apply(DrvAvatarImg, DrvAvatarInitials);
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
@@ -50,4 +52,5 @@ public partial class DriverHomeView : UserControl
     }
 
     private void OnDrvProceedClick(object sender, RoutedEventArgs e) => GoSetupRequested?.Invoke();
+
 }

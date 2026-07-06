@@ -11,6 +11,8 @@ namespace PCMPDispatcher;
 public partial class DrvFinalView : UserControl
 {
     private bool _connected;
+    private bool _connecting;
+    private DriverRunConfig? _cfg;
     private readonly System.Windows.Threading.DispatcherTimer _clock = new()
     { Interval = TimeSpan.FromMilliseconds(500) };
     private System.Windows.Threading.DispatcherTimer? _noticeTimer;
@@ -32,6 +34,7 @@ public partial class DrvFinalView : UserControl
     /// <summary>Build the run sheet from a config snapshot and fade the page in.</summary>
     public void Open(DriverRunConfig cfg)
     {
+        _cfg = cfg;
         _connected = false;
         UpdateConnectUi();
         BuildFinalDocument(cfg);
@@ -40,6 +43,16 @@ public partial class DrvFinalView : UserControl
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
+    }
+
+    private void OnVolumeGearClick(object sender, RoutedEventArgs e)
+        => FinalVolumePopup.IsOpen = !FinalVolumePopup.IsOpen;
+
+    private void OnVolumeChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
+    {
+        int pct = (int)FinalVolumeSlider.Value;
+        Services.VoiceChat.Volume = pct / 100f;
+        if (FinalVolumeLabel != null) FinalVolumeLabel.Text = $"{pct}%";
     }
 
     private void OnDrvFinalBack_Click(object sender, RoutedEventArgs e)
@@ -73,17 +86,73 @@ public partial class DrvFinalView : UserControl
     }
 
     // ── Connect button state ──
-    private void OnConnectClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private async void OnConnectClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (_connected) return;
-        _connected = true;
-        UpdateConnectUi();
+        if (_connected || _connecting || _cfg == null) return;
+
+        _connecting = true;
+        DrvConnectText.Text = "Connecting…";
+        DrvConnectBtn.Cursor = System.Windows.Input.Cursors.Wait;
+
+        bool ok = await Services.MpSession.ConnectAsync(BuildRunPayload(_cfg));
+
+        _connecting = false;
+        if (ok)
+        {
+            _connected = true;
+            UpdateConnectUi();
+        }
+        else
+        {
+            UpdateConnectUi();
+            ShowNotice("Could not connect to PC|MP. Try again.");
+        }
     }
 
-    private void OnDisconnectClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private async void OnDisconnectClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         _connected = false;
         UpdateConnectUi();
+        await Services.MpSession.DisconnectAsync();
+    }
+
+    // Assemble the run sheet the HUD will display (train, route, full timetable).
+    private object BuildRunPayload(DriverRunConfig cfg)
+    {
+        var stations = new System.Collections.Generic.List<string[]>();
+        int t = cfg.DepartMinutes;
+        for (int i = 0; i < cfg.Order.Length; i++)
+        {
+            bool origin = i == 0, terminus = i == cfg.Order.Length - 1;
+            string arr, dep;
+            if (origin) { arr = "—"; dep = Fmt(t); }
+            else
+            {
+                t += cfg.Segments[i - 1];
+                arr = Fmt(t);
+                int d = cfg.Dwell.Length > i ? cfg.Dwell[i] : 0;
+                if (!terminus) { t += d; dep = Fmt(t); }
+                else dep = "—";
+            }
+            stations.Add(new[] { cfg.Order[i], arr, dep });
+        }
+
+        return new
+        {
+            train_num  = $"{cfg.TrainType} {cfg.TrainNumber}".Trim(),
+            route_from = cfg.Order.Length > 0 ? cfg.Order[0] : "",
+            route_to   = cfg.Order.Length > 0 ? cfg.Order[^1] : "",
+            platform   = cfg.Platform,
+            loco       = cfg.Loco,
+            wagons     = $"{cfg.WagonCount} × {cfg.WagonType}",
+            stations,
+            options = new
+            {
+                radio    = cfg.OptRadio,
+                textonly = cfg.OptTextOnly,
+                priority = cfg.OptPriority
+            }
+        };
     }
 
     private void UpdateConnectUi()

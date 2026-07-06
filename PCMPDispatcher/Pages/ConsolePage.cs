@@ -36,7 +36,7 @@ public partial class ConsoleView : UserControl
     public void Open(string station)
     {
         ConsoleStationName.Text   = station.ToUpper();
-        ConsoleSubtitleText.Text  = $"{DispatcherName}.K.";
+        ConsoleSubtitleText.Text  = Services.UserSession.VisibleName;
         ConsoleTotalPlayers.Text  = "12";
         ConsoleZoneStatLabel.Text = station;
         ConsoleZonePlayers.Text   = "2";

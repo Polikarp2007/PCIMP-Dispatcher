@@ -21,7 +21,7 @@
                            SnapsToDevicePixels="True"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,24,0" Width="114">
                             <TextBlock x:Name="DrvClockText" Text="00:00:00"
                                        FontSize="22" FontWeight="SemiBold" Foreground="#111111" FontFamily="Bahnschrift" HorizontalAlignment="Center"
                                        TextOptions.TextFormattingMode="Display"
@@ -55,9 +55,15 @@
                             <TextBlock x:Name="DrvUserName" Text="Polikarp"
                                        FontSize="16" FontWeight="Bold" Foreground="#000000" HorizontalAlignment="Right"/>
                         </StackPanel>
-                        <Border Width="44" Height="44" CornerRadius="6" Background="#E8EEFF" VerticalAlignment="Center">
-                            <TextBlock Text="P" FontSize="20" FontWeight="Bold" Foreground="#3458e1"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Width="44" Height="44" CornerRadius="8" Background="#E8EEFF"
+                                VerticalAlignment="Center" ClipToBounds="True">
+                            <Grid>
+                                <TextBlock x:Name="DrvAvatarInitials" Text="P"
+                                           FontSize="18" FontWeight="Black" Foreground="#3458e1"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image x:Name="DrvAvatarImg" Stretch="UniformToFill"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Grid>
                         </Border>
                     </StackPanel>
                 </Grid>

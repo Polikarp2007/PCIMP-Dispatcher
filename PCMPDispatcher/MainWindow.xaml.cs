@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using SysIO = System.IO;
 using System.Threading;
@@ -21,11 +23,13 @@ public partial class MainWindow : Window
 {
     private const string DispatcherName = "Polikarp";
 
+    private bool _isClosing; // Флаг для синхронизации закрытия
 
     // High-priority clocks — use System.Threading.Timer so they fire from a background thread
     // and are dispatched at DispatcherPriority.Send (highest), bypassing all pending async work.
 
     private CancellationTokenSource? _navCts;
+    private Task<(LoginView.SessionState state, DateTime? until)>? _sessionCheck;
 
     public MainWindow()
     {
@@ -39,6 +43,9 @@ public partial class MainWindow : Window
 
         // Repaint stale edges after returning from another virtual desktop / re-activation.
         Activated += (_, _) => ForceFullRedraw();
+
+        // Log the session end on close and make sure the HUD overlay never outlives the launcher.
+        Closing += OnWindowClosing;
 
         // Role picker (UserControl) → shell navigates to the chosen dashboard.
         RolePickerView.RoleChosen += OnRoleChosen;
@@ -92,14 +99,62 @@ public partial class MainWindow : Window
             DrvSetupView.Open();
         });
 
-        // Splash intro → role picker.
-        SplashView.Finished += () => _ = NavigateTo(() =>
+        // Login → steam setup (if needed) or role picker.
+        LoginView.LoginSucceeded += (token, hwid, steam_id) => _ = NavigateTo(() =>
         {
-            SplashView.Visibility = Visibility.Collapsed;
-            ShowRolePicker();
+            LoginView.Visibility = Visibility.Collapsed;
+            if (string.IsNullOrEmpty(steam_id))
+            {
+                SteamSetupView.SetupCompleted += (sid, nick, url) =>
+                {
+                    if (!string.IsNullOrEmpty(sid))
+                    {
+                        Services.UserSession.SetSteam(nick, url);
+                        SaveSteamToServer(token, hwid, sid, nick, url);
+                    }
+                    _ = NavigateTo(() =>
+                    {
+                        SteamSetupView.Visibility = Visibility.Collapsed;
+                        ShowRolePicker();
+                    });
+                };
+                SteamSetupView.Open();
+            }
+            else
+                ShowRolePicker();
         });
+
+        // Kick off the silent session check immediately, in parallel with the
+        // splash animation — so by the time the intro ends we already know
+        // whether to skip the login page.
+        _sessionCheck = LoginView.HasValidSessionAsync();
+
+        // Splash intro → role picker (if already signed in) or login page.
+        SplashView.Finished += () => _ = OnSplashFinished();
         Loaded += (_, _) => SplashView.Start();
         RomanianT9.InitAsync(); // start downloading word list in background
+    }
+
+    // Splash finished → decide where to go. If the background session check says
+    // we're already signed in, skip the login page and go straight to the role
+    // picker in a single transition (no login flash, no double fade).
+    private async Task OnSplashFinished()
+    {
+        var state = LoginView.SessionState.NotBound;
+        DateTime? until = null;
+        try { if (_sessionCheck != null) (state, until) = await _sessionCheck; }
+        catch { state = LoginView.SessionState.NotBound; }
+
+        await NavigateTo(() =>
+        {
+            SplashView.Visibility = Visibility.Collapsed;
+            switch (state)
+            {
+                case LoginView.SessionState.Valid:  ShowRolePicker();        break;
+                case LoginView.SessionState.Banned: LoginView.ShowBanned(until); break;
+                default:                            LoginView.Open();        break;
+            }
+        });
     }
 
     // UpdateUiClock kept as no-op for any leftover references
@@ -157,6 +212,19 @@ public partial class MainWindow : Window
     //  NAVIGATION
     // ──────────────────────────────────────────────
 
+
+    private async void SaveSteamToServer(string token, string hwid, string steamId, string steamNick, string avatarUrl)
+    {
+        try
+        {
+            var body = new { hwid, token, steam_id = steamId, steam_nickname = steamNick, steam_avatar_url = avatarUrl };
+            var payload = new StringContent(System.Text.Json.JsonSerializer.Serialize(body),
+                System.Text.Encoding.UTF8, "application/json");
+            using var c = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            await c.PostAsync("https://auth.poli-co.com/profile/steam", payload);
+        }
+        catch { }
+    }
 
     private async void ShowConnecting(string station)
     {
@@ -327,6 +395,20 @@ public partial class MainWindow : Window
 
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct POINT { public int x, y; }
+
+    private async void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (_isClosing) return;
+        e.Cancel = true;
+        _isClosing = true;
+        try
+        {
+            await Services.MpSession.DisconnectAsync();
+            LoginView.EndSession();
+        }
+        catch { }
+        finally { Dispatcher.Invoke(Close); }
+    }
 
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     private struct MINMAXINFO

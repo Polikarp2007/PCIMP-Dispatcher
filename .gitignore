@@ -8,3 +8,5 @@ obj/
 *.user 
 .claude/ 
 *.WebView2/ 
+
+Publish/

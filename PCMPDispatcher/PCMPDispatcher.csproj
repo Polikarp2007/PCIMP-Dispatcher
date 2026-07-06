@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\app_logo.ico</ApplicationIcon>
     <AssemblyName>PCMPDispatcher</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +38,17 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
+
+  <!-- Bundle the PC|MP HUD overlay into the launcher output so it ships as one
+       package (Assets\PCIMP HUD\PoliCo_HUD.exe next to the launcher exe). -->
+  <Target Name="CopyPcimpHud" AfterTargets="Build">
+    <ItemGroup>
+      <HudFiles Include="C:\PC Hud\dist\PoliCo_HUD\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HudFiles)" DestinationFiles="@(HudFiles->'$(OutDir)Assets\PCIMP HUD\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="Exists('C:\PC Hud\dist\PoliCo_HUD')" />
+  </Target>
 
 </Project>
