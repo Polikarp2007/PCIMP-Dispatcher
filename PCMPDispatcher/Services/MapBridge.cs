@@ -136,7 +136,7 @@ public static class MapBridge
             catch (OperationCanceledException) { break; }
             catch { /* нет сети — не страшно, попробуем через 2 сек */ }
 
-            try { await Task.Delay(2000, token); } catch { break; }
+            try { await Task.Delay(1000, token); } catch { break; }
         }
     }
 
