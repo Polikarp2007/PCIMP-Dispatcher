@@ -97,10 +97,15 @@ public static class MpSession
         string? exe = FindHudExe();
         if (exe == null) return;
 
+        // Path to RailDriver so the HUD can read its OWN live GPS and measure the
+        // distance to the next signal locally (no server round-trip latency).
+        string rd = Game.GamePaths.RailDriverDll() ?? "";
+
         string args =
             $"--server \"{Base}\" --token \"{UserSession.Token}\" --hwid \"{UserSession.Hwid}\" " +
             $"--nickname \"{UserSession.VisibleName}\" --avatar-url \"{UserSession.SteamAvatarUrl}\" " +
-            $"--since {_chatSince}";
+            $"--since {_chatSince}" +
+            (rd.Length > 0 ? $" --raildriver \"{rd}\"" : "");
 
         try
         {
