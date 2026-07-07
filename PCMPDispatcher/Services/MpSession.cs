@@ -54,6 +54,10 @@ public static class MpSession
         // 4) Живая синхронизация поездов между игроками начинается ТОЛЬКО
         //    после Connect. Число вагонов — сколько игрок выбрал в лаунчере.
         try { Game.PositionSync.Start(wagonCount); } catch { }
+
+        // 5) Диспетчер стрелок: посекундно принимает с сервера глобальное
+        //    положение всех стрелок и применяет в память игры.
+        try { Game.SwitchSync.Start(); } catch { }
         _connected = true;
         return true;
     }
@@ -68,6 +72,7 @@ public static class MpSession
 
         try { VoiceChat.Stop(); } catch { }
         try { Game.PositionSync.Stop(); } catch { }
+        try { Game.SwitchSync.Stop(); } catch { }
         StopHud();
 
         string token = UserSession.Token, hwid = UserSession.Hwid;

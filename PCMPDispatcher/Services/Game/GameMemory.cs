@@ -175,4 +175,20 @@ public sealed class GameMemory : IDisposable
             return _moduleBase;
         }
     }
+
+    /// <summary>Базовый адрес произвольного модуля процесса по имени (напр.
+    /// "GameManagerVC64.dll"). 0 — модуль не найден. Нужен для стрелок: их
+    /// менеджер живёт в отдельной DLL, а не в основном exe.</summary>
+    public ulong GetModuleBase(string moduleName)
+    {
+        try
+        {
+            using var p = Process.GetProcessById(Pid);
+            foreach (ProcessModule m in p.Modules)
+                if (string.Equals(m.ModuleName, moduleName, StringComparison.OrdinalIgnoreCase))
+                    return (ulong)m.BaseAddress.ToInt64();
+        }
+        catch { }
+        return 0;
+    }
 }

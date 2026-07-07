@@ -34,6 +34,11 @@
     <Content Include="Assets\font P block R.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Реестр стрелок (сырые байты для записи в память). Сервер шлёт только
+         LEFT/RIGHT, а как это записать в память — берётся отсюда. -->
+    <Content Include="Switches\switches_registry.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
