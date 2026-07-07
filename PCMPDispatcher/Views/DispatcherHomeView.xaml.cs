@@ -37,10 +37,15 @@ public partial class DispatcherHomeView : UserControl
     {
         HomeUserName.Text = Services.UserSession.VisibleName;
         Services.Avatars.Apply(HomeAvatarImg, HomeAvatarInitials);
+        SbOnlineCount.Text = Services.OnlineCounter.DisplayText;
+        Services.OnlineCounter.Updated += OnOnlineUpdated;
+        Services.OnlineCounter.Start();
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
     }
+
+    private void OnOnlineUpdated(string txt) => SbOnlineCount.Text = txt;
 
     private void OnRouteCardToggle(object sender, MouseButtonEventArgs e)
     {

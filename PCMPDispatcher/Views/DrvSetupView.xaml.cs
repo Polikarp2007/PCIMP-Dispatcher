@@ -57,7 +57,27 @@ public partial class DrvSetupView : UserControl
     }
 
     private void OnDrvGoFinal(object sender, RoutedEventArgs e)
-        => GoFinalRequested?.Invoke(CaptureRunConfig());
+    {
+        // Номер поезда обязателен
+        if (string.IsNullOrWhiteSpace(DrvTrainNum.Text))
+        {
+            DrvTrainNum.BorderBrush = Brush("#E81123");
+            DrvTrainNum.Focus();
+            return;
+        }
+        // Время отправления: часы 0-23, минуты 0-59
+        int hh = ParseInt(DrvHH.Text), mm = ParseInt(DrvMM.Text);
+        bool timeOk = DrvHH.Text.Length > 0 && DrvMM.Text.Length > 0
+                   && hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59;
+        if (!timeOk)
+        {
+            DrvHH.BorderBrush = Brush("#E81123");
+            DrvMM.BorderBrush = Brush("#E81123");
+            DrvHH.Focus();
+            return;
+        }
+        GoFinalRequested?.Invoke(CaptureRunConfig());
+    }
 
     private void OnDrvSetupBack_Click(object sender, RoutedEventArgs e)
         => BackRequested?.Invoke();
@@ -92,6 +112,13 @@ public partial class DrvSetupView : UserControl
 
     private void OnDigitsOnly(object sender, TextCompositionEventArgs e)
         => e.Handled = !Regex.IsMatch(e.Text, "^[0-9]+$");
+
+    // Сброс красной рамки при вводе — пользователь начал исправлять поле.
+    private void OnValidFieldChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox tb)
+            tb.ClearValue(TextBox.BorderBrushProperty);
+    }
 
     // Highlight the stage (1 = left half, 2 = right half) the cursor is over.
     private void OnSetupStageHover(object sender, MouseEventArgs e)
@@ -181,9 +208,10 @@ public partial class DrvSetupView : UserControl
             Grid.SetColumn(name, 1);
             row.Children.Add(name);
 
-            if (isOrigin)
+            bool isTerminus = i == _currentOrder.Length - 1;
+            if (isOrigin || isTerminus)
             {
-                _dwellBoxes.Add(null); // origin departs at the entered time — no stop
+                _dwellBoxes.Add(null); // origin/terminus — no stop stepper, show dashes
                 var ph = BuildOriginPlaceholder();
                 Grid.SetColumn(ph, 2);
                 row.Children.Add(ph);

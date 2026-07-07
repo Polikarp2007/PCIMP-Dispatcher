@@ -276,7 +276,8 @@
                             </ComboBox>
                             <TextBox x:Name="DrvTrainNum" Style="{StaticResource FieldBox}"
                                      Width="120" Height="38" FontSize="15" FontWeight="Bold"
-                                     MaxLength="6" PreviewTextInput="OnDigitsOnly"/>
+                                     MaxLength="6" PreviewTextInput="OnDigitsOnly"
+                                     TextChanged="OnValidFieldChanged"/>
                         </StackPanel>
 
                         <!-- 2. Direction -->
@@ -314,12 +315,14 @@
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                             <TextBox x:Name="DrvHH" Style="{StaticResource FieldBox}" Width="60" Height="38"
                                      FontSize="17" FontWeight="Bold" MaxLength="2" Text="13" Padding="0"
-                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"/>
+                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"
+                                     TextChanged="OnValidFieldChanged"/>
                             <TextBlock Text=":" FontSize="20" FontWeight="Black" Foreground="#111111"
                                        VerticalAlignment="Center" Margin="8,0,8,0"/>
                             <TextBox x:Name="DrvMM" Style="{StaticResource FieldBox}" Width="60" Height="38"
                                      FontSize="17" FontWeight="Bold" MaxLength="2" Text="00" Padding="0"
-                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"/>
+                                     TextAlignment="Center" PreviewTextInput="OnDigitsOnly"
+                                     TextChanged="OnValidFieldChanged"/>
                         </StackPanel>
                     </StackPanel>
 

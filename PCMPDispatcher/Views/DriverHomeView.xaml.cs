@@ -38,10 +38,15 @@ public partial class DriverHomeView : UserControl
     {
         DrvUserName.Text = Services.UserSession.VisibleName;
         Services.Avatars.Apply(DrvAvatarImg, DrvAvatarInitials);
+        SbOnlineCount.Text = Services.OnlineCounter.DisplayText;
+        Services.OnlineCounter.Updated += OnOnlineUpdated;
+        Services.OnlineCounter.Start();
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
     }
+
+    private void OnOnlineUpdated(string txt) => SbOnlineCount.Text = txt;
 
     private void OnDrvRouteCardToggle(object sender, MouseButtonEventArgs e)
     {

@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\app_logo.ico</ApplicationIcon>
-    <AssemblyName>PCMPDispatcher</AssemblyName>
+    <AssemblyName>PCIMP Launcher</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
@@ -43,12 +43,12 @@
   </ItemGroup>
 
   <!-- Bundle the PC|MP HUD overlay into the launcher output so it ships as one
-       package (Assets\PCIMP HUD\PoliCo_HUD.exe next to the launcher exe). -->
+       package (Assets\PCIMP HUD\PCIMP Hud.exe next to the launcher exe). -->
   <Target Name="CopyPcimpHud" AfterTargets="Build">
     <ItemGroup>
-      <HudFiles Include="C:\PC Hud\dist\PoliCo_HUD\**\*" />
+      <HudFiles Include="C:\PC Hud\dist\PCIMP Hud\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(HudFiles)" DestinationFiles="@(HudFiles->'$(OutDir)Assets\PCIMP HUD\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="Exists('C:\PC Hud\dist\PoliCo_HUD')" />
+    <Copy SourceFiles="@(HudFiles)" DestinationFiles="@(HudFiles->'$(OutDir)Assets\PCIMP HUD\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="Exists('C:\PC Hud\dist\PCIMP Hud')" />
   </Target>
 
 </Project>

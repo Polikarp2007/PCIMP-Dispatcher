@@ -39,11 +39,16 @@ public partial class DrvFinalView : UserControl
         UpdateConnectUi();
         BuildFinalDocument(cfg);
         _clock.Start();
+        SbOnlineCount.Text = Services.OnlineCounter.DisplayText;
+        Services.OnlineCounter.Updated += OnOnlineUpdated;
+        Services.OnlineCounter.Start();
 
         Visibility = Visibility.Visible;
         Opacity = 0;
         BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300)));
     }
+
+    private void OnOnlineUpdated(string txt) => SbOnlineCount.Text = txt;
 
     private void OnVolumeGearClick(object sender, RoutedEventArgs e)
         => FinalVolumePopup.IsOpen = !FinalVolumePopup.IsOpen;
@@ -94,7 +99,7 @@ public partial class DrvFinalView : UserControl
         DrvConnectText.Text = "Connecting…";
         DrvConnectBtn.Cursor = System.Windows.Input.Cursors.Wait;
 
-        bool ok = await Services.MpSession.ConnectAsync(BuildRunPayload(_cfg));
+        bool ok = await Services.MpSession.ConnectAsync(BuildRunPayload(_cfg), _cfg?.WagonCount ?? 0);
 
         _connecting = false;
         if (ok)

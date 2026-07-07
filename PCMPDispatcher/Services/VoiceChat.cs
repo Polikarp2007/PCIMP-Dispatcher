@@ -41,6 +41,7 @@ public static class VoiceChat
     private const int PostRollMs   = 250;  // хвост после отпускания — не режем конец
     private const float HissLevel   = 0.012f; // постоянное шипение «открытого эфира»
     private const double CrackleProb = 0.0005; // вероятность щелчка-помехи на сэмпл
+    private const long MaxTalkMs   = 60_000;  // лимит непрерывной передачи — 1 минута
 
     private static readonly Random _rng = new();
 
@@ -59,6 +60,7 @@ public static class VoiceChat
     private static volatile bool _running;
     private static volatile bool _transmitting;
     private static long _stopAtTicks;      // != 0 → финализировать stop после этого времени
+    private static long _txStartTicks;     // когда начали передачу (для лимита 60с)
 
     private static readonly object _preLock = new();
     private static readonly Queue<byte[]> _preroll = new();
@@ -158,6 +160,16 @@ public static class VoiceChat
             _ = SendTextAsync("{\"type\":\"stop\"}");
         }
 
+        // Лимит 1 минута: если PTT завис/держат слишком долго — рубим сами,
+        // чтобы не шипело бесконечно (сервер тоже отпустит эфир по своему таймеру).
+        if (_transmitting && _txStartTicks != 0
+            && DateTime.UtcNow.Ticks - _txStartTicks >= TimeSpan.FromMilliseconds(MaxTalkMs).Ticks)
+        {
+            _transmitting = false;
+            _stopAtTicks = 0;
+            _ = SendTextAsync("{\"type\":\"stop\"}");
+        }
+
         if (!_transmitting) return;
         _ = SendRawAsync(ProcessRadio(raw), WebSocketMessageType.Binary);
 
@@ -230,6 +242,7 @@ public static class VoiceChat
     {
         if (_transmitting) { _stopAtTicks = 0; return; } // снова зажал — отменяем хвост
         _stopAtTicks = 0;
+        _txStartTicks = DateTime.UtcNow.Ticks;
         _hp.Reset(); _lp.Reset();
         _transmitting = true;
         _ = SendTextAsync("{\"type\":\"start\"}");
@@ -302,7 +315,17 @@ public static class VoiceChat
                 var audio = ms.ToArray();
                 try { _playBuffer?.AddSamples(audio, 0, audio.Length); } catch { }
             }
-            // Текстовые start/stop лаунчеру не нужны — анимацию рисует HUD.
+            else // текстовые команды сервера
+            {
+                var txt = Encoding.UTF8.GetString(ms.ToArray());
+                // denied — эфир занят другим; release — эфир отобрали по лимиту 60с.
+                // В обоих случаях прекращаем свою передачу немедленно.
+                if (txt.Contains("\"denied\"") || txt.Contains("\"release\""))
+                {
+                    _transmitting = false;
+                    _stopAtTicks = 0;
+                }
+            }
         }
     }
 

@@ -20,11 +20,12 @@ public static class MpSession
 
     private static Process? _hud;
     private static long _chatSince;   // chat id baseline handed to the HUD on connect
+    private static bool _connected;   // защита от двойного дисконнекта
 
     public static bool IsConnected => _hud is { HasExited: false };
 
     /// <summary>Register the session on the server and start the HUD overlay.</summary>
-    public static async Task<bool> ConnectAsync(object run)
+    public static async Task<bool> ConnectAsync(object run, int wagonCount = 0)
     {
         string token = UserSession.Token, hwid = UserSession.Hwid;
         if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hwid))
@@ -49,13 +50,24 @@ public static class MpSession
         // 3) Start the in-launcher voice radio (mic capture, playback, PTT).
         //    The HUD only animates; all audio lives here.
         try { VoiceChat.Start(); } catch { }
+
+        // 4) Живая синхронизация поездов между игроками начинается ТОЛЬКО
+        //    после Connect. Число вагонов — сколько игрок выбрал в лаунчере.
+        try { Game.PositionSync.Start(wagonCount); } catch { }
+        _connected = true;
         return true;
     }
 
-    /// <summary>Close the HUD and clear the server-side session.</summary>
+    /// <summary>Close the HUD and clear the server-side session. Идемпотентно —
+    /// повторные вызовы (кнопка Disconnect + закрытие окна) ничего не делают,
+    /// чтобы не слать «disconnected» в чат дважды.</summary>
     public static async Task DisconnectAsync()
     {
+        if (!_connected) return;
+        _connected = false;
+
         try { VoiceChat.Stop(); } catch { }
+        try { Game.PositionSync.Stop(); } catch { }
         StopHud();
 
         string token = UserSession.Token, hwid = UserSession.Hwid;
@@ -115,9 +127,9 @@ public static class MpSession
     {
         string[] candidates =
         {
-            Path.Combine(AppContext.BaseDirectory, "Assets", "PCIMP HUD", "PoliCo_HUD.exe"),
-            @"C:\PC Hud\dist\PoliCo_HUD\PoliCo_HUD.exe",
-            @"C:\PC Hud\build\PoliCo_HUD\PoliCo_HUD.exe",
+            Path.Combine(AppContext.BaseDirectory, "Assets", "PCIMP HUD", "PCIMP Hud.exe"),
+            @"C:\PC Hud\dist\PCIMP Hud\PCIMP Hud.exe",
+            @"C:\PC Hud\build\PCIMP Hud\PCIMP Hud.exe",
             @"C:\PC Hud\pcImp_v1.py",
         };
         foreach (var c in candidates)
