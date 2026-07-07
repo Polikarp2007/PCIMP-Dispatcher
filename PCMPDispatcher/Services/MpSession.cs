@@ -25,7 +25,7 @@ public static class MpSession
     public static bool IsConnected => _hud is { HasExited: false };
 
     /// <summary>Register the session on the server and start the HUD overlay.</summary>
-    public static async Task<bool> ConnectAsync(object run, int wagonCount = 0)
+    public static async Task<bool> ConnectAsync(object run, int wagonCount = 0, MapPlayerInfo? mapInfo = null)
     {
         string token = UserSession.Token, hwid = UserSession.Hwid;
         if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(hwid))
@@ -58,6 +58,9 @@ public static class MpSession
         // 5) Диспетчер стрелок: посекундно принимает с сервера глобальное
         //    положение всех стрелок и применяет в память игры.
         try { Game.SwitchSync.Start(); } catch { }
+
+        // 6) Мост на онлайн-карту: раз в 2 сек шлём GPS+скорость из RailDriver.
+        try { if (mapInfo != null) MapBridge.Start(mapInfo); } catch { }
         _connected = true;
         return true;
     }
@@ -73,6 +76,7 @@ public static class MpSession
         try { VoiceChat.Stop(); } catch { }
         try { Game.PositionSync.Stop(); } catch { }
         try { Game.SwitchSync.Stop(); } catch { }
+        try { MapBridge.Stop(); } catch { }
         StopHud();
 
         string token = UserSession.Token, hwid = UserSession.Hwid;

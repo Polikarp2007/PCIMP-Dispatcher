@@ -99,7 +99,8 @@ public partial class DrvFinalView : UserControl
         DrvConnectText.Text = "Connecting…";
         DrvConnectBtn.Cursor = System.Windows.Input.Cursors.Wait;
 
-        bool ok = await Services.MpSession.ConnectAsync(BuildRunPayload(_cfg), _cfg?.WagonCount ?? 0);
+        bool ok = await Services.MpSession.ConnectAsync(
+            BuildRunPayload(_cfg), _cfg?.WagonCount ?? 0, BuildMapInfo(_cfg!));
 
         _connecting = false;
         if (ok)
@@ -157,6 +158,34 @@ public partial class DrvFinalView : UserControl
                 textonly = cfg.OptTextOnly,
                 priority = cfg.OptPriority
             }
+        };
+    }
+
+    // Static run facts the online map shows next to the live GPS marker.
+    private Services.MapPlayerInfo BuildMapInfo(DriverRunConfig cfg)
+    {
+        var stops = new System.Collections.Generic.Dictionary<string, int>();
+        for (int i = 1; i < cfg.Order.Length - 1; i++) // intermediate stations only
+        {
+            int d = cfg.Dwell.Length > i ? cfg.Dwell[i] : 0;
+            stops[cfg.Order[i]] = d;
+        }
+
+        var parts = Services.UserSession.DisplayName.Trim().Split(
+            ' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return new Services.MapPlayerInfo
+        {
+            Name          = parts.Length > 0 ? parts[0] : Services.UserSession.VisibleName,
+            LastName      = parts.Length > 1 ? parts[^1] : "",
+            TrainType     = cfg.TrainType,
+            TrainNumber   = cfg.TrainNumber,
+            Locomotive    = cfg.Loco,
+            WagonCount    = cfg.WagonCount,
+            RouteFrom     = cfg.Origin,
+            RouteTo       = cfg.Destination,
+            DepartureTime = Fmt(cfg.DepartMinutes),
+            IntermediateStops = stops,
         };
     }
 
