@@ -155,14 +155,9 @@ public static class MapBridge
     private static void TryLoadRailDriver()
     {
         var candidates = new List<string>();
-        try
-        {
-            using var reg = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
-                @"SOFTWARE\WOW6432Node\Valve\Steam");
-            if (reg?.GetValue("InstallPath") is string steam)
-                candidates.Add(Path.Combine(steam, "steamapps", "common", "RailWorks", "plugins", "RailDriver64.dll"));
-        }
-        catch { }
+        // Способ 1: путь из запущенного процесса игры (самый надёжный).
+        var fromGame = Game.GamePaths.RailDriverDll();
+        if (fromGame != null) candidates.Add(fromGame);
         candidates.AddRange(SearchPaths);
 
         foreach (var path in candidates)

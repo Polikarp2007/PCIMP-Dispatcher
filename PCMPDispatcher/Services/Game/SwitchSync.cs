@@ -34,6 +34,7 @@ public static class SwitchSync
 
     private static GameMemory? _mem;
     private static SwitchWriter? _sw;
+    private static SignalWriter? _signals;
     private static ClientWebSocket? _ws;
     private static CancellationTokenSource? _cts;
     private static volatile bool _running;
@@ -54,6 +55,7 @@ public static class SwitchSync
         _cts = new CancellationTokenSource();
         _mem = new GameMemory();
         _sw = null;
+        _signals = new SignalWriter(); // сигналы = txt-файлы, память не нужна
         _desired.Clear();
 
         new Thread(ApplyLoop) { IsBackground = true, Name = "SwitchApply" }.Start();
@@ -109,13 +111,10 @@ public static class SwitchSync
     // Реестр рядом с exe (Switches\switches_registry.json), с фолбэками для dev.
     private static string RegistryPath()
     {
-        string[] candidates =
-        {
-            Path.Combine(AppContext.BaseDirectory, "Switches", "switches_registry.json"),
-            @"D:\My Steam\steamapps\common\RailWorks\PCIMP\Assets\Switches\Scripts\switches_registry.json",
-        };
-        foreach (var c in candidates) if (File.Exists(c)) return c;
-        return candidates[0];
+        // Сначала реестр из установки игры (актуальнее), затем забандленный.
+        var fromGame = GamePaths.SwitchesRegistry();
+        if (fromGame != null && File.Exists(fromGame)) return fromGame;
+        return Path.Combine(AppContext.BaseDirectory, "Switches", "switches_registry.json");
     }
 
     // ── сеть: подключение + приём карты стрелок ──────────────────────────
@@ -162,13 +161,33 @@ public static class SwitchSync
     {
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-        if (!root.TryGetProperty("type", out var t) || t.GetString() != "switches") return;
-        if (!root.TryGetProperty("switches", out var sw) || sw.ValueKind != JsonValueKind.Object) return;
+        string type = root.TryGetProperty("type", out var t) ? t.GetString() ?? "" : "";
 
-        foreach (var prop in sw.EnumerateObject())
+        switch (type)
         {
-            var pos = prop.Value.GetString();
-            if (pos == "LEFT" || pos == "RIGHT") _desired[prop.Name] = pos;
+            case "switches":
+                if (root.TryGetProperty("switches", out var sw) && sw.ValueKind == JsonValueKind.Object)
+                    foreach (var p in sw.EnumerateObject())
+                    {
+                        var pos = p.Value.GetString();
+                        if (pos == "LEFT" || pos == "RIGHT") _desired[p.Name] = pos;
+                    }
+                break;
+
+            case "signals":
+                // Аспекты светофоров → пишем в txt-файлы (id = "Station/NAME").
+                if (root.TryGetProperty("signals", out var sig) && sig.ValueKind == JsonValueKind.Object && _signals != null)
+                    foreach (var p in sig.EnumerateObject())
+                    {
+                        var aspect = p.Value.GetString();
+                        if (!string.IsNullOrEmpty(aspect)) _signals.Write(p.Name, aspect);
+                    }
+                break;
+
+            case "kick":
+                // Сервер выгоняет за нарушение (напр. проезд в сторону Soimos).
+                _ = Services.MpSession.DisconnectAsync();
+                break;
         }
     }
 }
