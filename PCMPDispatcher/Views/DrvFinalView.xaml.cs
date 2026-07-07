@@ -143,6 +143,14 @@ public partial class DrvFinalView : UserControl
             stations.Add(new[] { cfg.Order[i], arr, dep });
         }
 
+        // Absolute departure moment (Unix ms) so the dispatcher can prepare the
+        // route + open the signal exactly at the scheduled departure — timezone
+        // independent (computed against this PC's own clock).
+        var now = DateTime.Now;
+        var depAt = now.Date.AddMinutes(cfg.DepartMinutes);
+        if (depAt < now) depAt = now; // time already passed → depart as soon as possible
+        long departEpoch = ((DateTimeOffset)depAt).ToUnixTimeMilliseconds();
+
         return new
         {
             train_num  = $"{cfg.TrainType} {cfg.TrainNumber}".Trim(),
@@ -151,6 +159,7 @@ public partial class DrvFinalView : UserControl
             platform   = cfg.Platform,
             loco       = cfg.Loco,
             wagons     = $"{cfg.WagonCount} × {cfg.WagonType}",
+            depart_epoch = departEpoch,
             stations,
             options = new
             {
